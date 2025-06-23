@@ -1,0 +1,79 @@
+{
+  "name": "with-linkedin-ai-assist",
+  "displayName": "LinkedIn AI Comment Assistant",
+  "version": "0.0.1",
+  "description": "A Plasmo extension that helps capture LinkedIn posts for AI-assisted commenting.",
+  "author": "Your Name <your.email@example.com>",
+  "scripts": {
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "package": "plasmo package",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --fix --ext .js,.jsx,.ts,.tsx",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
+    "secretlint": "secretlint \"**/*\"",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@plasmohq/messaging": "^0.6.2",
+    "@plasmohq/storage": "^1.9.3",
+    "plasmo": "0.90.5",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "4.1.1",
+    "@secretlint/secretlint-rule-preset-recommend": "^10.1.0",
+    "@types/chrome": "0.0.258",
+    "@types/node": "20.11.5",
+    "@types/react": "18.2.48",
+    "@types/react-dom": "18.2.18",
+    "@typescript-eslint/eslint-plugin": "^8.35.0",
+    "@typescript-eslint/parser": "^8.35.0",
+    "autoprefixer": "^10.4.14",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-import-resolver-typescript": "^4.4.3",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-prettier": "^5.5.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "postcss": "^8.4.24",
+    "prettier": "3.2.4",
+    "secretlint": "^10.1.0",
+    "tailwindcss": "^3.3.2",
+    "typescript": "5.3.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --max-warnings 0 --fix"
+    ],
+    "*.{js,jsx}": [
+      "prettier --write",
+      "eslint --max-warnings 0 --fix"
+    ],
+    "*.{json,md,css,scss}": [
+      "prettier --write"
+    ],
+    "*": [
+      "secretlint"
+    ]
+  },
+  "manifest": {
+    "host_permissions": [
+      "https://www.linkedin.com/*"
+    ],
+    "permissions": [
+      "storage",
+      "activeTab"
+    ]
+  }
+}
