@@ -1,7 +1,9 @@
 import { sendToBackground } from '@plasmohq/messaging';
 import AiCaptureButton from '~components/ai-capture-button';
 import { createCommentSubmissionListener, type CommentData } from '~utils/comment-tracker';
+import { ConnectionRequestTracker } from '~utils/connection-request-tracker';
 import { findActionBar, isLinkedInFeedPage } from '~utils/linkedin-dom';
+import { MessageTracker } from '~utils/message-tracker';
 import { PerformanceManager } from '~utils/performance-manager';
 import { extractPostData, validatePostData } from '~utils/post-extractor';
 import { createRoot } from 'react-dom/client';
@@ -13,11 +15,15 @@ export const config: PlasmoCSConfig = {
 
 class LinkedInAiAssistant {
   private performanceManager: PerformanceManager;
+  private messageTracker: MessageTracker;
+  private connectionRequestTracker: ConnectionRequestTracker;
   private isInitialized = false;
   private commentListener: ((event: Event) => void) | null = null;
 
   constructor() {
     this.performanceManager = new PerformanceManager();
+    this.messageTracker = new MessageTracker();
+    this.connectionRequestTracker = new ConnectionRequestTracker();
   }
 
   /**
@@ -26,8 +32,8 @@ class LinkedInAiAssistant {
   public async initialize() {
     if (this.isInitialized) return;
 
-    // Only run on LinkedIn feed pages
-    if (!isLinkedInFeedPage()) {
+    // Initialize on all LinkedIn pages (not just feed)
+    if (window.location.hostname !== 'www.linkedin.com') {
       return;
     }
 
@@ -45,29 +51,57 @@ class LinkedInAiAssistant {
   private initializeAfterReady() {
     // Wait a bit for LinkedIn to finish loading
     setTimeout(() => {
-      this.setupPerformanceManager();
-      this.setupCommentTracking();
+      this.setupTracking();
       this.isInitialized = true;
       console.log('[LinkedIn AI Assistant] Extension initialized');
     }, 2000);
   }
 
   /**
-   * Setup the performance manager with callbacks
+   * Setup all tracking components
    */
-  private setupPerformanceManager() {
-    this.performanceManager.initialize(
-      this.handlePostVisible.bind(this),
-      this.handlePostHidden.bind(this),
-    );
+  private setupTracking() {
+    // Initialize post tracking (on feed pages)
+    if (isLinkedInFeedPage()) {
+      console.log('[LinkedIn AI Assistant] 📱 Setting up post tracking...');
+      this.performanceManager.initialize(
+        this.handlePostVisible.bind(this),
+        this.handlePostHidden.bind(this),
+      );
+      this.performanceManager.startObserving();
+    }
 
-    this.performanceManager.startObserving();
+    // Initialize message tracking (on all LinkedIn pages)
+    console.log('[LinkedIn AI Assistant] 💬 Setting up message tracking...');
+    this.messageTracker.initialize();
+
+    // Initialize connection request tracking (on all LinkedIn pages)
+    console.log('[LinkedIn AI Assistant] 🤝 Setting up connection request tracking...');
+    this.connectionRequestTracker.initialize();
+
+    // Initialize comment tracking (on all LinkedIn pages)
+    this.setupCommentTracking();
+
+    // Setup performance manager to handle messaging and connection interfaces
+    this.performanceManager.initializeMessagingTracking(
+      this.handleMessagingInterfaceVisible.bind(this),
+    );
+    this.performanceManager.initializeConnectionTracking(
+      this.handleConnectionInterfaceVisible.bind(this),
+    );
 
     // Log stats periodically in development
     if (process.env.NODE_ENV === 'development') {
       setInterval(() => {
-        const stats = this.performanceManager.getStats();
-        console.log('[LinkedIn AI Assistant] Stats:', stats);
+        const performanceStats = this.performanceManager.getStats();
+        const messageStats = this.messageTracker.getStats();
+        const connectionStats = this.connectionRequestTracker.getStats();
+
+        console.log('[LinkedIn AI Assistant] Stats:', {
+          performance: performanceStats,
+          messaging: messageStats,
+          connections: connectionStats,
+        });
       }, 30000);
     }
   }
@@ -104,6 +138,24 @@ class LinkedInAiAssistant {
       console.error('[LinkedIn AI Assistant] Error capturing comment:', error);
       // Don't re-throw to avoid disrupting the user's LinkedIn experience
     }
+  }
+
+  /**
+   * Handle when a messaging interface becomes visible
+   */
+  private handleMessagingInterfaceVisible(interfaceElement: Element) {
+    console.log('[LinkedIn AI Assistant] 💬 Messaging interface detected:', interfaceElement);
+    // The MessageTracker handles its own interface detection and tracking
+    // This callback is for future extensibility if needed
+  }
+
+  /**
+   * Handle when a connection request interface becomes visible
+   */
+  private handleConnectionInterfaceVisible(interfaceElement: Element) {
+    console.log('[LinkedIn AI Assistant] 🤝 Connection interface detected:', interfaceElement);
+    // The ConnectionRequestTracker handles its own interface detection and tracking
+    // This callback is for future extensibility if needed
   }
 
   /**
@@ -230,7 +282,12 @@ class LinkedInAiAssistant {
    * Cleanup when the extension is disabled or page is unloaded
    */
   public cleanup() {
+    console.log('[LinkedIn AI Assistant] Starting cleanup...');
+
+    // Cleanup all tracking components
     this.performanceManager.stopObserving();
+    this.messageTracker.cleanup();
+    this.connectionRequestTracker.cleanup();
 
     // Remove comment listener
     if (this.commentListener) {
@@ -239,6 +296,7 @@ class LinkedInAiAssistant {
     }
 
     this.isInitialized = false;
+    console.log('[LinkedIn AI Assistant] ✅ All components cleaned up');
   }
 }
 

@@ -10,3 +10,486 @@ content.ffb82774.js:25433 [LinkedIn AI Assistant] Initializing...
 content.ffb82774.js:25446 [LinkedIn AI Assistant] [DEBUG] initializeAfterReady() called
 content.ffb82774.js:25637 [LinkedIn AI Assistant] [DEBUG] Exposed aiAssistant to window
 content.ffb82774.js:25457 [LinkedIn AI Assistant] [DEBUG] setupPerformanceManager() called
+
+content.ffb82774.js:25489 [LinkedIn AI Assistant] ✅ Injecting button for post: urn:li:activity:7339747343535136769
+content.ffb82774.js:25537 [LinkedIn AI Assistant] ✅ Button successfully injected for post urn:li:activity:7339747343535136769
+content.ffb82774.js:25494 [LinkedIn AI Assistant] ✅ Button injection completed for: urn:li:activity:7340230464634310656
+content.ffb82774.js:25494 [LinkedIn AI Assistant] ✅ Button injection completed for: urn:li:activity:7339747343535136769
+c6t6e3esbc4nlqph875lvk34:10994 
+            
+            
+           POST https://www.linkedin.com/sensorCollect/?action=reportMetrics net::ERR_BLOCKED_BY_CLIENT
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:10994
+sendPayload @ czj2fr64aifmome6kzzaupxjs:12857
+value @ c6t6e3esbc4nlqph875lvk34:10586
+value @ c6t6e3esbc4nlqph875lvk34:10568
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:10585
+requestIdleCallback
+value @ c6t6e3esbc4nlqph875lvk34:10585
+value @ c6t6e3esbc4nlqph875lvk34:10586
+value @ c6t6e3esbc4nlqph875lvk34:10587
+value @ c6t6e3esbc4nlqph875lvk34:10565
+incrementMetricCounter @ czj2fr64aifmome6kzzaupxjs:12827
+fireClientSensor @ czj2fr64aifmome6kzzaupxjs:25207
+onViewportEntry @ czj2fr64aifmome6kzzaupxjs:25200
+(anonymous) @ czj2fr64aifmome6kzzaupxjs:25287
+(anonymous) @ czj2fr64aifmome6kzzaupxjs:25285
+c6t6e3esbc4nlqph875lvk34:10994 
+            
+            
+           POST https://www.linkedin.com/sensorCollect/?action=reportMetrics net::ERR_BLOCKED_BY_CLIENT
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:10994
+sendPayload @ czj2fr64aifmome6kzzaupxjs:12857
+value @ c6t6e3esbc4nlqph875lvk34:10586
+value @ c6t6e3esbc4nlqph875lvk34:10568
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:10585
+requestIdleCallback
+value @ c6t6e3esbc4nlqph875lvk34:10585
+value @ c6t6e3esbc4nlqph875lvk34:10586
+value @ c6t6e3esbc4nlqph875lvk34:10587
+value @ c6t6e3esbc4nlqph875lvk34:10565
+incrementMetricCounter @ czj2fr64aifmome6kzzaupxjs:12827
+fireClientSensor @ czj2fr64aifmome6kzzaupxjs:25207
+maybeFireMediaRenderedEvent @ czj2fr64aifmome6kzzaupxjs:25210
+onViewportEntry @ czj2fr64aifmome6kzzaupxjs:25200
+(anonymous) @ czj2fr64aifmome6kzzaupxjs:25287
+(anonymous) @ czj2fr64aifmome6kzzaupxjs:25285
+content.ffb82774.js:25935 [AI Capture Button] Click detected for post: urn:li:activity:7340230464634310656
+content.ffb82774.js:25938 [AI Capture Button] Calling onCapture...
+content.ffb82774.js:25546 [LinkedIn AI Assistant] � Starting capture for post: urn:li:activity:7340230464634310656
+content.ffb82774.js:25548 [LinkedIn AI Assistant] � Looking for post container with ID: urn:li:activity:7340230464634310656
+content.ffb82774.js:25555 [LinkedIn AI Assistant] ✅ Found post container: <div data-id=​"urn:​li:​activity:​7340230464634310656" class=​"relative" data-finite-scroll-hotkey-item=​"14">​…​</div>​
+content.ffb82774.js:25557 [LinkedIn AI Assistant] � Extracting post data...
+content.ffb82774.js:26425 [Post Extractor] 🔍 Starting extraction for container: <div data-id=​"urn:​li:​activity:​7340230464634310656" class=​"relative" data-finite-scroll-hotkey-item=​"14">​…​</div>​
+content.ffb82774.js:26427 [Post Extractor] 🆔 Post ID: urn:li:activity:7340230464634310656
+content.ffb82774.js:26429 [Post Extractor] 📝 Extracting comprehensive content...
+content.ffb82774.js:26480 [Post Extractor] 📄 Extracting text content...
+content.ffb82774.js:26487 [Post Extractor] 🖼️ Extracting images...
+content.ffb82774.js:26491 [Post Extractor] 🎥 Extracting videos...
+content.ffb82774.js:26495 [Post Extractor] 📎 Extracting documents...
+content.ffb82774.js:26499 [Post Extractor] 📰 Extracting articles/links...
+content.ffb82774.js:26503 [Post Extractor] 🎠 Extracting carousels...
+content.ffb82774.js:26507 [Post Extractor] 📊 Extracting polls...
+content.ffb82774.js:26511 [Post Extractor] ✅ Total media items extracted: 3
+content.ffb82774.js:26431 [Post Extractor] 📝 Content extracted: (3) [{…}, {…}, {…}]
+content.ffb82774.js:26433 [Post Extractor] 👤 Extracting author info...
+content.ffb82774.js:26435 [Post Extractor] 👤 Author info extracted: {post_author_name: 'Jack ZhangJack Zhang', post_author_profile: 'https://www.linkedin.com/in/jack-zhang-05200222?mi…profile%3AACoAAASgrb4BBxPVcZzOGzkyGJEgwwHJv1PTxnc'}
+content.ffb82774.js:26437 [Post Extractor] 🔗 Extracting post URL...
+content.ffb82774.js:26439 [Post Extractor] 🔗 Post URL: https://www.linkedin.com/feed/update/7340230464634310656/
+content.ffb82774.js:26440 [Post Extractor] ⏰ Extracting timestamp...
+content.ffb82774.js:26442 [Post Extractor] ⏰ Timestamp: 2025-06-23T23:55:54.216Z
+content.ffb82774.js:26443 [Post Extractor] 🎬 Determining media type...
+content.ffb82774.js:26445 [Post Extractor] 🎬 Media type: mixed
+content.ffb82774.js:25559 [LinkedIn AI Assistant] � Raw extracted data: {postId: 'urn:li:activity:7340230464634310656', content: Array(3), author: 'Jack ZhangJack Zhang', authorUrl: 'https://www.linkedin.com/in/jack-zhang-05200222?mi…profile%3AACoAAASgrb4BBxPVcZzOGzkyGJEgwwHJv1PTxnc', authorTitle: undefined, …}
+content.ffb82774.js:25564 [LinkedIn AI Assistant] ✅ Post data validated successfully: {postId: 'urn:li:activity:7340230464634310656', content: Array(3), author: 'Jack ZhangJack Zhang', authorUrl: 'https://www.linkedin.com/in/jack-zhang-05200222?mi…profile%3AACoAAASgrb4BBxPVcZzOGzkyGJEgwwHJv1PTxnc', authorTitle: undefined, …}
+content.ffb82774.js:25566 [LinkedIn AI Assistant] 📡 Sending to background script...
+content.ffb82774.js:25578 [LinkedIn AI Assistant] 💥 Error capturing post: Error: Extension context invalidated.
+    at p (content.ffb82774.js:25684:24)
+    at LinkedInAiAssistant.handleCapturePost (content.ffb82774.js:25567:68)
+    at handleClick (content.ffb82774.js:25939:19)
+    at HTMLUnknownElement.callCallback (content.ffb82774.js:6478:22)
+    at Object.invokeGuardedCallbackDev (content.ffb82774.js:6512:22)
+    at invokeGuardedCallback (content.ffb82774.js:6559:37)
+    at invokeGuardedCallbackAndCatchFirstError (content.ffb82774.js:6571:31)
+    at executeDispatch (content.ffb82774.js:10030:9)
+    at processDispatchQueueItemsInOrder (content.ffb82774.js:10044:13)
+    at processDispatchQueue (content.ffb82774.js:10052:13)
+handleCapturePost @ content.ffb82774.js:25578
+await in handleCapturePost
+handleClick @ content.ffb82774.js:25939
+callCallback @ content.ffb82774.js:6478
+invokeGuardedCallbackDev @ content.ffb82774.js:6512
+invokeGuardedCallback @ content.ffb82774.js:6559
+invokeGuardedCallbackAndCatchFirstError @ content.ffb82774.js:6571
+executeDispatch @ content.ffb82774.js:10030
+processDispatchQueueItemsInOrder @ content.ffb82774.js:10044
+processDispatchQueue @ content.ffb82774.js:10052
+dispatchEventsForPlugins @ content.ffb82774.js:10060
+(anonymous) @ content.ffb82774.js:10186
+batchedUpdates$1 @ content.ffb82774.js:21814
+batchedUpdates @ content.ffb82774.js:6350
+dispatchEventForPluginEventSystem @ content.ffb82774.js:10185
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ content.ffb82774.js:8010
+dispatchEvent @ content.ffb82774.js:8005
+dispatchDiscreteEvent @ content.ffb82774.js:7985
+content.ffb82774.js:25579 [LinkedIn AI Assistant] 💥 Error stack: Error: Extension context invalidated.
+    at p (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:25684:24)
+    at LinkedInAiAssistant.handleCapturePost (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:25567:68)
+    at handleClick (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:25939:19)
+    at HTMLUnknownElement.callCallback (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:6478:22)
+    at Object.invokeGuardedCallbackDev (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:6512:22)
+    at invokeGuardedCallback (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:6559:37)
+    at invokeGuardedCallbackAndCatchFirstError (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:6571:31)
+    at executeDispatch (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:10030:9)
+    at processDispatchQueueItemsInOrder (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:10044:13)
+    at processDispatchQueue (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:10052:13)
+handleCapturePost @ content.ffb82774.js:25579
+await in handleCapturePost
+handleClick @ content.ffb82774.js:25939
+callCallback @ content.ffb82774.js:6478
+invokeGuardedCallbackDev @ content.ffb82774.js:6512
+invokeGuardedCallback @ content.ffb82774.js:6559
+invokeGuardedCallbackAndCatchFirstError @ content.ffb82774.js:6571
+executeDispatch @ content.ffb82774.js:10030
+processDispatchQueueItemsInOrder @ content.ffb82774.js:10044
+processDispatchQueue @ content.ffb82774.js:10052
+dispatchEventsForPlugins @ content.ffb82774.js:10060
+(anonymous) @ content.ffb82774.js:10186
+batchedUpdates$1 @ content.ffb82774.js:21814
+batchedUpdates @ content.ffb82774.js:6350
+dispatchEventForPluginEventSystem @ content.ffb82774.js:10185
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ content.ffb82774.js:8010
+dispatchEvent @ content.ffb82774.js:8005
+dispatchDiscreteEvent @ content.ffb82774.js:7985
+content.ffb82774.js:25945 [AI Capture Button] Failed to capture post: Error: Extension context invalidated.
+    at p (content.ffb82774.js:25684:24)
+    at LinkedInAiAssistant.handleCapturePost (content.ffb82774.js:25567:68)
+    at handleClick (content.ffb82774.js:25939:19)
+    at HTMLUnknownElement.callCallback (content.ffb82774.js:6478:22)
+    at Object.invokeGuardedCallbackDev (content.ffb82774.js:6512:22)
+    at invokeGuardedCallback (content.ffb82774.js:6559:37)
+    at invokeGuardedCallbackAndCatchFirstError (content.ffb82774.js:6571:31)
+    at executeDispatch (content.ffb82774.js:10030:9)
+    at processDispatchQueueItemsInOrder (content.ffb82774.js:10044:13)
+    at processDispatchQueue (content.ffb82774.js:10052:13)
+handleClick @ content.ffb82774.js:25945
+await in handleClick
+callCallback @ content.ffb82774.js:6478
+invokeGuardedCallbackDev @ content.ffb82774.js:6512
+invokeGuardedCallback @ content.ffb82774.js:6559
+invokeGuardedCallbackAndCatchFirstError @ content.ffb82774.js:6571
+executeDispatch @ content.ffb82774.js:10030
+processDispatchQueueItemsInOrder @ content.ffb82774.js:10044
+processDispatchQueue @ content.ffb82774.js:10052
+dispatchEventsForPlugins @ content.ffb82774.js:10060
+(anonymous) @ content.ffb82774.js:10186
+batchedUpdates$1 @ content.ffb82774.js:21814
+batchedUpdates @ content.ffb82774.js:6350
+dispatchEventForPluginEventSystem @ content.ffb82774.js:10185
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ content.ffb82774.js:8010
+dispatchEvent @ content.ffb82774.js:8005
+dispatchDiscreteEvent @ content.ffb82774.js:7985
+content.ffb82774.js:25946 [AI Capture Button] Error details: {message: 'Extension context invalidated.', stack: 'Error: Extension context invalidated.\n    at p (ch…fcphbbdegdeobpechlc/content.ffb82774.js:10052:13)', postId: 'urn:li:activity:7340230464634310656'}
+handleClick @ content.ffb82774.js:25946
+await in handleClick
+callCallback @ content.ffb82774.js:6478
+invokeGuardedCallbackDev @ content.ffb82774.js:6512
+invokeGuardedCallback @ content.ffb82774.js:6559
+invokeGuardedCallbackAndCatchFirstError @ content.ffb82774.js:6571
+executeDispatch @ content.ffb82774.js:10030
+processDispatchQueueItemsInOrder @ content.ffb82774.js:10044
+processDispatchQueue @ content.ffb82774.js:10052
+dispatchEventsForPlugins @ content.ffb82774.js:10060
+(anonymous) @ content.ffb82774.js:10186
+batchedUpdates$1 @ content.ffb82774.js:21814
+batchedUpdates @ content.ffb82774.js:6350
+dispatchEventForPluginEventSystem @ content.ffb82774.js:10185
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ content.ffb82774.js:8010
+dispatchEvent @ content.ffb82774.js:8005
+dispatchDiscreteEvent @ content.ffb82774.js:7985
+content.ffb82774.js:335 Uncaught Error: Extension context invalidated.
+    at R (content.ffb82774.js:335:8)
+R @ content.ffb82774.js:335
+content.ffb82774.js:26405 [PerformanceManager] Cleanup completed. Removed 0 posts. Currently managing 45 posts.
+content.ffb82774.js:25457 [LinkedIn AI Assistant] Stats: {observedPosts: 45, postsWithButtons: 28, isTabVisible: false, queueSize: 3}
+content.ffb82774.js:25935 [AI Capture Button] Click detected for post: urn:li:activity:7340230464634310656
+content.ffb82774.js:25938 [AI Capture Button] Calling onCapture...
+content.ffb82774.js:25546 [LinkedIn AI Assistant] � Starting capture for post: urn:li:activity:7340230464634310656
+content.ffb82774.js:25548 [LinkedIn AI Assistant] � Looking for post container with ID: urn:li:activity:7340230464634310656
+content.ffb82774.js:25555 [LinkedIn AI Assistant] ✅ Found post container: <div data-id=​"urn:​li:​activity:​7340230464634310656" class=​"relative" data-finite-scroll-hotkey-item=​"14">​…​</div>​
+content.ffb82774.js:25557 [LinkedIn AI Assistant] � Extracting post data...
+content.ffb82774.js:26425 [Post Extractor] 🔍 Starting extraction for container: <div data-id=​"urn:​li:​activity:​7340230464634310656" class=​"relative" data-finite-scroll-hotkey-item=​"14">​…​</div>​
+content.ffb82774.js:26427 [Post Extractor] 🆔 Post ID: urn:li:activity:7340230464634310656
+content.ffb82774.js:26429 [Post Extractor] 📝 Extracting comprehensive content...
+content.ffb82774.js:26480 [Post Extractor] 📄 Extracting text content...
+content.ffb82774.js:26487 [Post Extractor] 🖼️ Extracting images...
+content.ffb82774.js:26491 [Post Extractor] 🎥 Extracting videos...
+content.ffb82774.js:26495 [Post Extractor] 📎 Extracting documents...
+content.ffb82774.js:26499 [Post Extractor] 📰 Extracting articles/links...
+content.ffb82774.js:26503 [Post Extractor] 🎠 Extracting carousels...
+content.ffb82774.js:26507 [Post Extractor] 📊 Extracting polls...
+content.ffb82774.js:26511 [Post Extractor] ✅ Total media items extracted: 3
+content.ffb82774.js:26431 [Post Extractor] 📝 Content extracted: (3) [{…}, {…}, {…}]
+content.ffb82774.js:26433 [Post Extractor] 👤 Extracting author info...
+content.ffb82774.js:26435 [Post Extractor] 👤 Author info extracted: {post_author_name: 'Jack ZhangJack Zhang', post_author_profile: 'https://www.linkedin.com/in/jack-zhang-05200222?mi…profile%3AACoAAASgrb4BBxPVcZzOGzkyGJEgwwHJv1PTxnc'}
+content.ffb82774.js:26437 [Post Extractor] 🔗 Extracting post URL...
+content.ffb82774.js:26439 [Post Extractor] 🔗 Post URL: https://www.linkedin.com/feed/update/7340230464634310656/
+content.ffb82774.js:26440 [Post Extractor] ⏰ Extracting timestamp...
+content.ffb82774.js:26442 [Post Extractor] ⏰ Timestamp: 2025-06-23T23:56:27.460Z
+content.ffb82774.js:26443 [Post Extractor] 🎬 Determining media type...
+content.ffb82774.js:26445 [Post Extractor] 🎬 Media type: mixed
+content.ffb82774.js:25559 [LinkedIn AI Assistant] � Raw extracted data: {postId: 'urn:li:activity:7340230464634310656', content: Array(3), author: 'Jack ZhangJack Zhang', authorUrl: 'https://www.linkedin.com/in/jack-zhang-05200222?mi…profile%3AACoAAASgrb4BBxPVcZzOGzkyGJEgwwHJv1PTxnc', authorTitle: undefined, …}
+content.ffb82774.js:25564 [LinkedIn AI Assistant] ✅ Post data validated successfully: {postId: 'urn:li:activity:7340230464634310656', content: Array(3), author: 'Jack ZhangJack Zhang', authorUrl: 'https://www.linkedin.com/in/jack-zhang-05200222?mi…profile%3AACoAAASgrb4BBxPVcZzOGzkyGJEgwwHJv1PTxnc', authorTitle: undefined, …}
+content.ffb82774.js:25566 [LinkedIn AI Assistant] 📡 Sending to background script...
+content.ffb82774.js:25578 [LinkedIn AI Assistant] 💥 Error capturing post: Error: Extension context invalidated.
+    at p (content.ffb82774.js:25684:24)
+    at LinkedInAiAssistant.handleCapturePost (content.ffb82774.js:25567:68)
+    at handleClick (content.ffb82774.js:25939:19)
+    at HTMLUnknownElement.callCallback (content.ffb82774.js:6478:22)
+    at Object.invokeGuardedCallbackDev (content.ffb82774.js:6512:22)
+    at invokeGuardedCallback (content.ffb82774.js:6559:37)
+    at invokeGuardedCallbackAndCatchFirstError (content.ffb82774.js:6571:31)
+    at executeDispatch (content.ffb82774.js:10030:9)
+    at processDispatchQueueItemsInOrder (content.ffb82774.js:10044:13)
+    at processDispatchQueue (content.ffb82774.js:10052:13)
+handleCapturePost @ content.ffb82774.js:25578
+await in handleCapturePost
+handleClick @ content.ffb82774.js:25939
+callCallback @ content.ffb82774.js:6478
+invokeGuardedCallbackDev @ content.ffb82774.js:6512
+invokeGuardedCallback @ content.ffb82774.js:6559
+invokeGuardedCallbackAndCatchFirstError @ content.ffb82774.js:6571
+executeDispatch @ content.ffb82774.js:10030
+processDispatchQueueItemsInOrder @ content.ffb82774.js:10044
+processDispatchQueue @ content.ffb82774.js:10052
+dispatchEventsForPlugins @ content.ffb82774.js:10060
+(anonymous) @ content.ffb82774.js:10186
+batchedUpdates$1 @ content.ffb82774.js:21814
+batchedUpdates @ content.ffb82774.js:6350
+dispatchEventForPluginEventSystem @ content.ffb82774.js:10185
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ content.ffb82774.js:8010
+dispatchEvent @ content.ffb82774.js:8005
+dispatchDiscreteEvent @ content.ffb82774.js:7985
+content.ffb82774.js:25579 [LinkedIn AI Assistant] 💥 Error stack: Error: Extension context invalidated.
+    at p (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:25684:24)
+    at LinkedInAiAssistant.handleCapturePost (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:25567:68)
+    at handleClick (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:25939:19)
+    at HTMLUnknownElement.callCallback (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:6478:22)
+    at Object.invokeGuardedCallbackDev (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:6512:22)
+    at invokeGuardedCallback (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:6559:37)
+    at invokeGuardedCallbackAndCatchFirstError (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:6571:31)
+    at executeDispatch (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:10030:9)
+    at processDispatchQueueItemsInOrder (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:10044:13)
+    at processDispatchQueue (chrome-extension://ecmccfmgkheccfcphbbdegdeobpechlc/content.ffb82774.js:10052:13)
+handleCapturePost @ content.ffb82774.js:25579
+await in handleCapturePost
+handleClick @ content.ffb82774.js:25939
+callCallback @ content.ffb82774.js:6478
+invokeGuardedCallbackDev @ content.ffb82774.js:6512
+invokeGuardedCallback @ content.ffb82774.js:6559
+invokeGuardedCallbackAndCatchFirstError @ content.ffb82774.js:6571
+executeDispatch @ content.ffb82774.js:10030
+processDispatchQueueItemsInOrder @ content.ffb82774.js:10044
+processDispatchQueue @ content.ffb82774.js:10052
+dispatchEventsForPlugins @ content.ffb82774.js:10060
+(anonymous) @ content.ffb82774.js:10186
+batchedUpdates$1 @ content.ffb82774.js:21814
+batchedUpdates @ content.ffb82774.js:6350
+dispatchEventForPluginEventSystem @ content.ffb82774.js:10185
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ content.ffb82774.js:8010
+dispatchEvent @ content.ffb82774.js:8005
+dispatchDiscreteEvent @ content.ffb82774.js:7985
+content.ffb82774.js:25945 [AI Capture Button] Failed to capture post: Error: Extension context invalidated.
+    at p (content.ffb82774.js:25684:24)
+    at LinkedInAiAssistant.handleCapturePost (content.ffb82774.js:25567:68)
+    at handleClick (content.ffb82774.js:25939:19)
+    at HTMLUnknownElement.callCallback (content.ffb82774.js:6478:22)
+    at Object.invokeGuardedCallbackDev (content.ffb82774.js:6512:22)
+    at invokeGuardedCallback (content.ffb82774.js:6559:37)
+    at invokeGuardedCallbackAndCatchFirstError (content.ffb82774.js:6571:31)
+    at executeDispatch (content.ffb82774.js:10030:9)
+    at processDispatchQueueItemsInOrder (content.ffb82774.js:10044:13)
+    at processDispatchQueue (content.ffb82774.js:10052:13)
+handleClick @ content.ffb82774.js:25945
+await in handleClick
+callCallback @ content.ffb82774.js:6478
+invokeGuardedCallbackDev @ content.ffb82774.js:6512
+invokeGuardedCallback @ content.ffb82774.js:6559
+invokeGuardedCallbackAndCatchFirstError @ content.ffb82774.js:6571
+executeDispatch @ content.ffb82774.js:10030
+processDispatchQueueItemsInOrder @ content.ffb82774.js:10044
+processDispatchQueue @ content.ffb82774.js:10052
+dispatchEventsForPlugins @ content.ffb82774.js:10060
+(anonymous) @ content.ffb82774.js:10186
+batchedUpdates$1 @ content.ffb82774.js:21814
+batchedUpdates @ content.ffb82774.js:6350
+dispatchEventForPluginEventSystem @ content.ffb82774.js:10185
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ content.ffb82774.js:8010
+dispatchEvent @ content.ffb82774.js:8005
+dispatchDiscreteEvent @ content.ffb82774.js:7985
+content.ffb82774.js:25946 [AI Capture Button] Error details: {message: 'Extension context invalidated.', stack: 'Error: Extension context invalidated.\n    at p (ch…fcphbbdegdeobpechlc/content.ffb82774.js:10052:13)', postId: 'urn:li:activity:7340230464634310656'}
+handleClick @ content.ffb82774.js:25946
+await in handleClick
+callCallback @ content.ffb82774.js:6478
+invokeGuardedCallbackDev @ content.ffb82774.js:6512
+invokeGuardedCallback @ content.ffb82774.js:6559
+invokeGuardedCallbackAndCatchFirstError @ content.ffb82774.js:6571
+executeDispatch @ content.ffb82774.js:10030
+processDispatchQueueItemsInOrder @ content.ffb82774.js:10044
+processDispatchQueue @ content.ffb82774.js:10052
+dispatchEventsForPlugins @ content.ffb82774.js:10060
+(anonymous) @ content.ffb82774.js:10186
+batchedUpdates$1 @ content.ffb82774.js:21814
+batchedUpdates @ content.ffb82774.js:6350
+dispatchEventForPluginEventSystem @ content.ffb82774.js:10185
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ content.ffb82774.js:8010
+dispatchEvent @ content.ffb82774.js:8005
+dispatchDiscreteEvent @ content.ffb82774.js:7985
+content.ffb82774.js:335 Uncaught Error: Extension context invalidated.
+    at R (content.ffb82774.js:335:8)
+R @ content.ffb82774.js:335
+c6t6e3esbc4nlqph875lvk34:10994 
+            
+            
+           POST https://www.linkedin.com/sensorCollect/?action=reportMetrics net::ERR_BLOCKED_BY_CLIENT
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:10994
+sendPayload @ czj2fr64aifmome6kzzaupxjs:12857
+value @ c6t6e3esbc4nlqph875lvk34:10586
+value @ c6t6e3esbc4nlqph875lvk34:10568
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:10585
+requestIdleCallback
+value @ c6t6e3esbc4nlqph875lvk34:10585
+value @ c6t6e3esbc4nlqph875lvk34:10586
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:10587
+setTimeout
+value @ c6t6e3esbc4nlqph875lvk34:10587
+value @ c6t6e3esbc4nlqph875lvk34:10565
+incrementMetricCounter @ czj2fr64aifmome6kzzaupxjs:12827
+_emitClientSensorMetrics @ czj2fr64aifmome6kzzaupxjs:8324
+(anonymous) @ czj2fr64aifmome6kzzaupxjs:8308
+trackResponse @ czj2fr64aifmome6kzzaupxjs:8304
+(anonymous) @ czj2fr64aifmome6kzzaupxjs:8301
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:7228
+_ @ 6xit43scc04ns3vx47p7zv81u:7182
+y @ 6xit43scc04ns3vx47p7zv81u:7181
+invokeWithOnError @ 6xit43scc04ns3vx47p7zv81u:6105
+flush @ 6xit43scc04ns3vx47p7zv81u:6089
+flush @ 6xit43scc04ns3vx47p7zv81u:6117
+_end @ 6xit43scc04ns3vx47p7zv81u:6219
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:6155
+Promise.then
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:6060
+flush @ 6xit43scc04ns3vx47p7zv81u:3447
+_scheduleAutorun @ 6xit43scc04ns3vx47p7zv81u:6250
+_ensureInstance @ 6xit43scc04ns3vx47p7zv81u:6248
+schedule @ 6xit43scc04ns3vx47p7zv81u:6183
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:1358
+v @ 6xit43scc04ns3vx47p7zv81u:7170
+f @ 6xit43scc04ns3vx47p7zv81u:7164
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:7226
+e.onload @ czj2fr64aifmome6kzzaupxjs:1526
+FileReader
+(anonymous) @ czj2fr64aifmome6kzzaupxjs:1552
+text @ czj2fr64aifmome6kzzaupxjs:1553
+e.determineBodyPromise @ czj2fr64aifmome6kzzaupxjs:5522
+(anonymous) @ czj2fr64aifmome6kzzaupxjs:5655
+_ @ 6xit43scc04ns3vx47p7zv81u:7182
+y @ 6xit43scc04ns3vx47p7zv81u:7181
+invokeWithOnError @ 6xit43scc04ns3vx47p7zv81u:6105
+flush @ 6xit43scc04ns3vx47p7zv81u:6089
+flush @ 6xit43scc04ns3vx47p7zv81u:6117
+_end @ 6xit43scc04ns3vx47p7zv81u:6219
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:6155
+Promise.then
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:6060
+flush @ 6xit43scc04ns3vx47p7zv81u:3447
+_scheduleAutorun @ 6xit43scc04ns3vx47p7zv81u:6250
+_ensureInstance @ 6xit43scc04ns3vx47p7zv81u:6248
+schedule @ 6xit43scc04ns3vx47p7zv81u:6183
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:1358
+v @ 6xit43scc04ns3vx47p7zv81u:7170
+p @ 6xit43scc04ns3vx47p7zv81u:7163
+f @ 6xit43scc04ns3vx47p7zv81u:7167
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:7226
+E.l.onload @ czj2fr64aifmome6kzzaupxjs:1614
+XMLHttpRequest.send
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:10995
+(anonymous) @ czj2fr64aifmome6kzzaupxjs:1623
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:7225
+A @ 6xit43scc04ns3vx47p7zv81u:7227
+E @ czj2fr64aifmome6kzzaupxjs:1608
+_fetchRequest @ czj2fr64aifmome6kzzaupxjs:5668
+ajax @ czj2fr64aifmome6kzzaupxjs:5654
+ajax @ bcye4vhsdtf08hq1b65yoqex8:234
+_fetchPresenceStatuses @ czj2fr64aifmome6kzzaupxjs:84720
+u @ 6tks74ly8pdljfuc46tmiq6d9:516
+invokeWithOnError @ 6xit43scc04ns3vx47p7zv81u:6105
+flush @ 6xit43scc04ns3vx47p7zv81u:6089
+flush @ 6xit43scc04ns3vx47p7zv81u:6117
+_end @ 6xit43scc04ns3vx47p7zv81u:6219
+end @ 6xit43scc04ns3vx47p7zv81u:6166
+_runExpiredTimers @ 6xit43scc04ns3vx47p7zv81u:6238
+setTimeout
+setTimeout @ 6xit43scc04ns3vx47p7zv81u:6065
+_installTimerTimeout @ 6xit43scc04ns3vx47p7zv81u:6245
+_reinstallTimerTimeout @ 6xit43scc04ns3vx47p7zv81u:6243
+debounce @ 6xit43scc04ns3vx47p7zv81u:6210
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:3433
+e.debounceTask @ 6tks74ly8pdljfuc46tmiq6d9:517
+getPresenceStatus @ czj2fr64aifmome6kzzaupxjs:84707
+get presence @ czj2fr64aifmome6kzzaupxjs:84676
+get presenceClass @ czj2fr64aifmome6kzzaupxjs:84677
+Re @ 6xit43scc04ns3vx47p7zv81u:1248
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:4506
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:4499
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:5840
+d @ 6xit43scc04ns3vx47p7zv81u:4499
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:4909
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:4499
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:5840
+d @ 6xit43scc04ns3vx47p7zv81u:4499
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:5114
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:4499
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:5840
+d @ 6xit43scc04ns3vx47p7zv81u:4499
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:5041
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:4499
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:5840
+d @ 6xit43scc04ns3vx47p7zv81u:4499
+evaluate @ 6xit43scc04ns3vx47p7zv81u:5042
+_execute @ 6xit43scc04ns3vx47p7zv81u:5364
+execute @ 6xit43scc04ns3vx47p7zv81u:5361
+rerender @ 6xit43scc04ns3vx47p7zv81u:5424
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:783
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:835
+Nt @ 6xit43scc04ns3vx47p7zv81u:5337
+_renderRoots @ 6xit43scc04ns3vx47p7zv81u:834
+_renderRootsTransaction @ 6xit43scc04ns3vx47p7zv81u:839
+_revalidate @ 6xit43scc04ns3vx47p7zv81u:845
+invokeWithOnError @ 6xit43scc04ns3vx47p7zv81u:6105
+flush @ 6xit43scc04ns3vx47p7zv81u:6089
+flush @ 6xit43scc04ns3vx47p7zv81u:6117
+_end @ 6xit43scc04ns3vx47p7zv81u:6219
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:6155
+Promise.then
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:6060
+flush @ 6xit43scc04ns3vx47p7zv81u:3447
+_scheduleAutorun @ 6xit43scc04ns3vx47p7zv81u:6250
+_end @ 6xit43scc04ns3vx47p7zv81u:6221
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:6155
+Promise.then
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:6060
+flush @ 6xit43scc04ns3vx47p7zv81u:3447
+_scheduleAutorun @ 6xit43scc04ns3vx47p7zv81u:6250
+_end @ 6xit43scc04ns3vx47p7zv81u:6221
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:6155
+Promise.then
+(anonymous) @ 6xit43scc04ns3vx47p7zv81u:6060
+flush @ 6xit43scc04ns3vx47p7zv81u:3447
+_scheduleAutorun @ 6xit43scc04ns3vx47p7zv81u:6250
+_ensureInstance @ 6xit43scc04ns3vx47p7zv81u:6248
+ensureInstance @ 6xit43scc04ns3vx47p7zv81u:6216
+scheduleRevalidate @ 6xit43scc04ns3vx47p7zv81u:624
+dirtyTag @ 6xit43scc04ns3vx47p7zv81u:5885
+T @ 6xit43scc04ns3vx47p7zv81u:5910
+setter @ 6xit43scc04ns3vx47p7zv81u:5846
+c @ 6xit43scc04ns3vx47p7zv81u:1297
+handlePresenceChange @ czj2fr64aifmome6kzzaupxjs:84714
+(anonymous) @ czj2fr64aifmome6kzzaupxjs:31848
+Oe @ czj2fr64aifmome6kzzaupxjs:31848
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:10042
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:10042
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:10017
+T.dispatchEvent @ c6t6e3esbc4nlqph875lvk34:9875
+G @ c6t6e3esbc4nlqph875lvk34:9898
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:9871
+Promise.then
+i @ c6t6e3esbc4nlqph875lvk34:9869
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:9871
+Promise.then
+i @ c6t6e3esbc4nlqph875lvk34:9869
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:9871
+Promise.then
+i @ c6t6e3esbc4nlqph875lvk34:9869
+(anonymous) @ c6t6e3esbc4nlqph875lvk34:9871
+content.ffb82774.js:26405 [PerformanceManager] Cleanup completed. Removed 0 posts. Currently managing 45 posts.
