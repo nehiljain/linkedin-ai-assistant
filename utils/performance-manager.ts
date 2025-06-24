@@ -159,6 +159,11 @@ export class PerformanceManager {
       entries.forEach(entry => {
         const element = entry.target;
         const managed = this.managedPosts.get(element);
+        console.log('[LinkedIn AI Assistant] [DEBUG] IntersectionObserver entry:', {
+          element,
+          isIntersecting: entry.isIntersecting,
+          boundingClientRect: entry.boundingClientRect,
+        });
 
         if (entry.isIntersecting) {
           // Post is becoming visible
@@ -194,6 +199,7 @@ export class PerformanceManager {
     ];
 
     const posts = document.querySelectorAll(postSelectors.join(', '));
+    console.log('[LinkedIn AI Assistant] [DEBUG] scanForPosts found:', posts.length, posts);
 
     posts.forEach(post => {
       if (!this.managedPosts.has(post)) {
@@ -206,6 +212,7 @@ export class PerformanceManager {
           hasButton: false,
           lastSeen: Date.now(),
         });
+        console.log('[LinkedIn AI Assistant] [DEBUG] Observing new post:', post);
       }
     });
   }
