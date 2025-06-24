@@ -1,56 +1,36 @@
 import {
-  CONNECTION_REQUEST_SELECTORS,
   determineConnectionRequestContext,
-  extractCompanyInfo,
-  extractConnectionMessage,
-  extractInvitationLimits,
   extractRecipientInfo,
   generateConnectionRequestId,
-  hasCustomMessage,
   validateConnectionRequestData,
   type ConnectionRequestData,
 } from './connection-request-dom';
 
 /**
- * Extract comprehensive connection request data from LinkedIn invitation flow
- * Handles all connection request contexts: profile, search, PYMK, suggestions
+ * Extract connection request data from any connect button click
+ * Simplified approach: focus on profile page data extraction
  */
-export function extractConnectionRequestData(): ConnectionRequestData | null {
+export function extractConnectionRequestData(
+  connectElement?: Element,
+  connectionType: 'direct' | 'with_note' | 'dropdown' = 'direct',
+): ConnectionRequestData | null {
   try {
-    console.log('[Connection Request Extractor] 🔍 Starting extraction...');
+    console.log('[Connection Request Extractor] 🔍 Starting simplified extraction...');
+    console.log('[Connection Request Extractor] 🔗 Connection type:', connectionType);
 
     // Generate unique request ID
     const requestId = generateConnectionRequestId();
     console.log('[Connection Request Extractor] 🆔 Request ID:', requestId);
 
-    // Extract recipient information
-    console.log('[Connection Request Extractor] 👤 Extracting recipient info...');
-    const recipientInfo = extractRecipientInfo();
+    // Extract recipient information from current page
+    console.log('[Connection Request Extractor] 👤 Extracting recipient from current page...');
+    const recipientInfo = extractRecipientInfo(connectElement);
     console.log('[Connection Request Extractor] 👤 Recipient info:', recipientInfo);
-
-    // Extract custom message
-    console.log('[Connection Request Extractor] 📝 Extracting custom message...');
-    const customMessage = extractConnectionMessage();
-    console.log('[Connection Request Extractor] 📝 Custom message:', customMessage);
 
     // Determine request context
     console.log('[Connection Request Extractor] 🔍 Determining context...');
     const requestContext = determineConnectionRequestContext();
     console.log('[Connection Request Extractor] 🔍 Context:', requestContext);
-
-    // Extract additional information
-    console.log('[Connection Request Extractor] 🏢 Extracting company info...');
-    const recipientCompany = extractCompanyInfo();
-    console.log('[Connection Request Extractor] 🏢 Company:', recipientCompany);
-
-    // Extract invitation limits
-    console.log('[Connection Request Extractor] 📊 Extracting invitation limits...');
-    const invitationLimitRemaining = extractInvitationLimits();
-    console.log('[Connection Request Extractor] 📊 Limits remaining:', invitationLimitRemaining);
-
-    // Check if message is custom
-    const hasMessage = hasCustomMessage();
-    console.log('[Connection Request Extractor] ✍️ Has custom message:', hasMessage);
 
     // Create timestamp
     const timestamp = new Date().toISOString();
@@ -66,12 +46,11 @@ export function extractConnectionRequestData(): ConnectionRequestData | null {
       recipientName: recipientInfo.name,
       recipientProfileUrl: recipientInfo.profileUrl,
       recipientTitle: recipientInfo.title,
-      recipientCompany,
-      customMessage,
+      recipientLocation: recipientInfo.location,
+      recipientCompany: recipientInfo.company,
       timestamp,
       requestContext,
-      hasCustomMessage: hasMessage,
-      invitationLimitRemaining,
+      connectionType,
     };
 
     // Validate the extracted data
@@ -92,105 +71,42 @@ export function extractConnectionRequestData(): ConnectionRequestData | null {
 }
 
 /**
- * Extract connection request data from pre-send state (before clicking send)
- * This captures the intention to send a connection request
+ * Extract connection request data when modal send button is clicked
+ * Simplified: just capture current profile data
  */
-export function extractPreSendConnectionRequestData(): Partial<ConnectionRequestData> | null {
+export function extractModalConnectionRequestData(): ConnectionRequestData | null {
   try {
-    console.log('[Connection Request Extractor] 🚀 Extracting pre-send data...');
+    console.log('[Connection Request Extractor] 🚀 Extracting modal connection data...');
 
-    // Check if modal is open and ready
-    const modal = document.querySelector(CONNECTION_REQUEST_SELECTORS.connectionModal);
-    if (!modal) {
-      console.warn('[Connection Request Extractor] ❌ No connection modal found');
-      return null;
-    }
-
-    // Extract basic data before sending
-    const recipientInfo = extractRecipientInfo();
-    const customMessage = extractConnectionMessage();
-    const requestContext = determineConnectionRequestContext();
-    const requestId = generateConnectionRequestId();
-
-    console.log('[Connection Request Extractor] 🚀 Pre-send data:', {
-      recipientName: recipientInfo.name,
-      customMessage,
-      requestContext,
-      hasMessage: customMessage.length > 0,
-    });
-
-    if (!recipientInfo.name) {
-      console.warn('[Connection Request Extractor] ❌ No recipient found in pre-send');
-      return null;
-    }
-
-    return {
-      requestId,
-      recipientName: recipientInfo.name,
-      recipientProfileUrl: recipientInfo.profileUrl,
-      recipientTitle: recipientInfo.title,
-      recipientCompany: extractCompanyInfo(),
-      customMessage,
-      timestamp: new Date().toISOString(),
-      requestContext,
-      hasCustomMessage: customMessage.length > 0,
-      invitationLimitRemaining: extractInvitationLimits(),
-    };
+    // Use the simplified extraction with modal type
+    return extractConnectionRequestData(undefined, 'with_note');
   } catch (error) {
-    console.error('[Connection Request Extractor] 💥 Error extracting pre-send data:', error);
+    console.error('[Connection Request Extractor] 💥 Error extracting modal data:', error);
     return null;
   }
 }
 
 /**
- * Extract connection request data from confirmation/success state
- * This captures the actual sent connection request
+ * Extract connection request data from dropdown connect click (from HTML you provided)
+ * This handles clicks on "Invite [Name] to connect" in the more actions dropdown
  */
-export function extractConfirmedConnectionRequestData(
-  preSendData?: Partial<ConnectionRequestData>,
+export function extractDropdownConnectionRequestData(
+  dropdownElement: Element,
 ): ConnectionRequestData | null {
   try {
-    console.log('[Connection Request Extractor] ✅ Extracting confirmed data...');
+    console.log('[Connection Request Extractor] 📋 Extracting dropdown connection data...');
 
-    // Use pre-send data as base if available
-    let baseData = preSendData || {};
-
-    // If no pre-send data, extract fresh
-    if (!baseData.recipientName) {
-      baseData = extractPreSendConnectionRequestData() || {};
-    }
-
-    // Update with confirmed timestamp
-    const confirmedData: ConnectionRequestData = {
-      requestId: baseData.requestId || generateConnectionRequestId(),
-      recipientName: baseData.recipientName || '',
-      recipientProfileUrl: baseData.recipientProfileUrl || '',
-      recipientTitle: baseData.recipientTitle,
-      recipientCompany: baseData.recipientCompany,
-      customMessage: baseData.customMessage || '',
-      timestamp: new Date().toISOString(), // Update to actual send time
-      requestContext: baseData.requestContext || determineConnectionRequestContext(),
-      hasCustomMessage: baseData.hasCustomMessage || false,
-      invitationLimitRemaining: baseData.invitationLimitRemaining,
-    };
-
-    // Validate the confirmed data
-    if (!validateConnectionRequestData(confirmedData)) {
-      console.warn('[Connection Request Extractor] ❌ Confirmed data validation failed');
-      return null;
-    }
-
-    console.log('[Connection Request Extractor] ✅ Confirmed data extracted:', confirmedData);
-    return confirmedData;
+    // Use the simplified extraction with dropdown type
+    return extractConnectionRequestData(dropdownElement, 'dropdown');
   } catch (error) {
-    console.error('[Connection Request Extractor] 💥 Error extracting confirmed data:', error);
+    console.error('[Connection Request Extractor] 💥 Error extracting dropdown data:', error);
     return null;
   }
 }
 
 /**
- * Extract connection request data from different contexts without modal
- * For direct connect buttons that don't show a modal
+ * Extract connection request data from direct connect button click
+ * Simplified: use current page data
  */
 export function extractDirectConnectionRequestData(
   connectButton: Element,
@@ -198,46 +114,8 @@ export function extractDirectConnectionRequestData(
   try {
     console.log('[Connection Request Extractor] ⚡ Extracting direct connection data...');
 
-    // Find the container context (search result, PYMK card, etc.)
-    const container = connectButton.closest(
-      '.reusable-search__result-container, .discover-cohort-card, .people-connect-card, .artdeco-card',
-    );
-
-    if (!container) {
-      console.warn('[Connection Request Extractor] ❌ No container found for direct connection');
-      return null;
-    }
-
-    // Extract recipient information from container
-    const recipientInfo = extractRecipientFromContainer(container);
-    if (!recipientInfo.name) {
-      console.warn('[Connection Request Extractor] ❌ No recipient found in container');
-      return null;
-    }
-
-    const connectionRequestData: ConnectionRequestData = {
-      requestId: generateConnectionRequestId(),
-      recipientName: recipientInfo.name,
-      recipientProfileUrl: recipientInfo.profileUrl,
-      recipientTitle: recipientInfo.title,
-      recipientCompany: recipientInfo.company,
-      customMessage: '', // Direct connections typically have no custom message
-      timestamp: new Date().toISOString(),
-      requestContext: determineConnectionRequestContext(),
-      hasCustomMessage: false,
-    };
-
-    // Validate the data
-    if (!validateConnectionRequestData(connectionRequestData)) {
-      console.warn('[Connection Request Extractor] ❌ Direct connection data validation failed');
-      return null;
-    }
-
-    console.log(
-      '[Connection Request Extractor] ⚡ Direct connection data extracted:',
-      connectionRequestData,
-    );
-    return connectionRequestData;
+    // Use the simplified extraction with direct type
+    return extractConnectionRequestData(connectButton, 'direct');
   } catch (error) {
     console.error(
       '[Connection Request Extractor] 💥 Error extracting direct connection data:',
@@ -245,91 +123,6 @@ export function extractDirectConnectionRequestData(
     );
     return null;
   }
-}
-
-/**
- * Extract recipient information from a specific container element
- */
-function extractRecipientFromContainer(container: Element): {
-  name: string;
-  profileUrl: string;
-  title?: string;
-  company?: string;
-} {
-  // Search result selectors
-  const nameSelectors = [
-    '.entity-result__title-text a',
-    '.actor-name',
-    '.discover-person-card__name',
-    '.people-connect-card__name',
-    '.search-result__info .actor-name',
-  ];
-
-  const titleSelectors = [
-    '.entity-result__primary-subtitle',
-    '.subline-level-1',
-    '.discover-person-card__occupation',
-    '.people-connect-card__headline',
-  ];
-
-  const linkSelectors = ['a[href*="/in/"]', '.app-aware-link[href*="/in/"]'];
-
-  // Extract name
-  let name = '';
-  for (const selector of nameSelectors) {
-    const element = container.querySelector(selector);
-    if (element) {
-      name = element.textContent?.trim() || '';
-      if (name) break;
-    }
-  }
-
-  // Extract title
-  let title = '';
-  for (const selector of titleSelectors) {
-    const element = container.querySelector(selector);
-    if (element) {
-      title = element.textContent?.trim() || '';
-      if (title && title !== '-') break;
-    }
-  }
-
-  // Extract profile URL
-  let profileUrl = '';
-  for (const selector of linkSelectors) {
-    const element = container.querySelector(selector) as HTMLAnchorElement;
-    if (element && element.href) {
-      profileUrl = element.href;
-      break;
-    }
-  }
-
-  return {
-    name,
-    profileUrl,
-    title: title || undefined,
-  };
-}
-
-/**
- * Validate connection request data completeness
- */
-export function validateConnectionRequestDataComplete(
-  data: ConnectionRequestData | null,
-): data is ConnectionRequestData {
-  if (!data) return false;
-
-  // Check required fields
-  if (!data.requestId || !data.recipientName || !data.timestamp) {
-    console.warn('[Connection Request Extractor] ❌ Missing required fields:', {
-      requestId: !!data.requestId,
-      recipientName: !!data.recipientName,
-      timestamp: !!data.timestamp,
-    });
-    return false;
-  }
-
-  return true;
 }
 
 /**
@@ -346,17 +139,21 @@ export function sanitizeText(text: string): string {
  * Get connection request analytics data
  */
 export function getConnectionRequestAnalytics(data: ConnectionRequestData): {
-  hasMessage: boolean;
-  messageLength: number;
+  connectionType: string;
   context: string;
   isProfileConnection: boolean;
   isSearchConnection: boolean;
+  hasTitle: boolean;
+  hasCompany: boolean;
+  hasLocation: boolean;
 } {
   return {
-    hasMessage: data.hasCustomMessage,
-    messageLength: data.customMessage.length,
+    connectionType: data.connectionType,
     context: data.requestContext,
     isProfileConnection: data.requestContext === 'profile_page',
     isSearchConnection: data.requestContext === 'search_results',
+    hasTitle: !!data.recipientTitle,
+    hasCompany: !!data.recipientCompany,
+    hasLocation: !!data.recipientLocation,
   };
 }

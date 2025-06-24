@@ -9,10 +9,9 @@ import {
   type ConnectionRequestData,
 } from './connection-request-dom';
 import {
-  extractConfirmedConnectionRequestData,
   extractDirectConnectionRequestData,
-  extractPreSendConnectionRequestData,
-  validateConnectionRequestDataComplete,
+  extractDropdownConnectionRequestData,
+  extractModalConnectionRequestData,
 } from './connection-request-extractor';
 
 /**
@@ -26,7 +25,8 @@ export class ConnectionRequestTracker {
   private lastRequestCapture = new Map<string, number>(); // Prevent duplicate captures
   private cleanupInterval: NodeJS.Timeout | null = null;
   private modalObserver: MutationObserver | null = null;
-
+  private isDryRunMode = false;
+  private detectedConnections = new Map<string, unknown>();
   constructor() {
     this.setupCleanupInterval();
   }
@@ -157,48 +157,55 @@ export class ConnectionRequestTracker {
   private scanForConnectButtons() {
     console.log('[Connection Request Tracker] 🔍 Scanning for connect buttons...');
 
-    // Find all connect buttons in different contexts
-    const connectButtonSelectors = [
-      CONNECTION_REQUEST_SELECTORS.connectButton,
-      CONNECTION_REQUEST_SELECTORS.connectButtonPrimary,
-      CONNECTION_REQUEST_SELECTORS.searchResultConnectButton,
-      CONNECTION_REQUEST_SELECTORS.pymkConnectButton,
-      CONNECTION_REQUEST_SELECTORS.suggestionConnectButton,
-    ];
+    // Find primary connect buttons
+    const connectButtons = document.querySelectorAll(CONNECTION_REQUEST_SELECTORS.connectButton);
 
-    const allConnectButtons = new Set<Element>();
+    // Find dropdown connect items (like the HTML you provided)
+    const dropdownConnectItems = document.querySelectorAll(
+      CONNECTION_REQUEST_SELECTORS.connectDropdownItem,
+    );
 
-    connectButtonSelectors.forEach(selector => {
-      const buttons = document.querySelectorAll(selector);
-      buttons.forEach(button => {
-        // Filter to only connect buttons (not other action buttons)
-        const ariaLabel = button.getAttribute('aria-label') || '';
-        const textContent = button.textContent || '';
-        if (
-          ariaLabel.toLowerCase().includes('connect') ||
-          ariaLabel.toLowerCase().includes('invite') ||
-          textContent.toLowerCase().includes('connect')
-        ) {
-          allConnectButtons.add(button);
-        }
-      });
-    });
+    const allConnectElements = new Set<Element>();
 
-    console.log(`[Connection Request Tracker] 🔍 Found ${allConnectButtons.size} connect buttons`);
-
-    allConnectButtons.forEach(button => {
-      if (!this.trackedConnectButtons.has(button)) {
-        console.log('[Connection Request Tracker] 🎯 Adding listener to connect button:', button);
-        this.attachConnectButtonListener(button);
-        this.trackedConnectButtons.add(button);
+    // Add primary connect buttons
+    connectButtons.forEach(button => {
+      const ariaLabel = button.getAttribute('aria-label') || '';
+      if (
+        ariaLabel.toLowerCase().includes('connect') ||
+        ariaLabel.toLowerCase().includes('invite')
+      ) {
+        allConnectElements.add(button);
       }
     });
 
-    // Clean up listeners for buttons that no longer exist
-    this.trackedConnectButtons.forEach(button => {
-      if (!document.contains(button)) {
-        console.log('[Connection Request Tracker] 🧹 Removing listener from removed button');
-        this.trackedConnectButtons.delete(button);
+    // Add dropdown connect items
+    dropdownConnectItems.forEach(item => {
+      const ariaLabel = item.getAttribute('aria-label') || '';
+      if (
+        ariaLabel.toLowerCase().includes('connect') ||
+        ariaLabel.toLowerCase().includes('invite')
+      ) {
+        allConnectElements.add(item);
+      }
+    });
+
+    console.log(
+      `[Connection Request Tracker] 🔍 Found ${allConnectElements.size} connect elements`,
+    );
+
+    allConnectElements.forEach(element => {
+      if (!this.trackedConnectButtons.has(element)) {
+        console.log('[Connection Request Tracker] 🎯 Adding listener to connect element:', element);
+        this.attachConnectElementListener(element);
+        this.trackedConnectButtons.add(element);
+      }
+    });
+
+    // Clean up listeners for elements that no longer exist
+    this.trackedConnectButtons.forEach(element => {
+      if (!document.contains(element)) {
+        console.log('[Connection Request Tracker] 🧹 Removing listener from removed element');
+        this.trackedConnectButtons.delete(element);
       }
     });
 
@@ -216,33 +223,61 @@ export class ConnectionRequestTracker {
   }
 
   /**
-   * Attach event listener to a connect button
+   * Attach event listener to a connect element (button or dropdown item)
    */
-  private attachConnectButtonListener(connectButton: Element) {
+  private attachConnectElementListener(connectElement: Element) {
     const handleConnectClick = async (_event: Event) => {
-      console.log('[Connection Request Tracker] 🚀 Connect button clicked:', connectButton);
+      console.log('[Connection Request Tracker] 🚀 Connect element clicked:', connectElement);
 
       try {
-        // Determine if this is a direct connection or will open modal
+        // Determine the type of connect element
+        const isDropdownItem =
+          connectElement.getAttribute('role') === 'button' &&
+          connectElement.classList.contains('artdeco-dropdown__item');
+        const isModalButton = connectElement.tagName === 'BUTTON';
 
-        // If it's a direct connect (no modal), capture immediately
-        if (this.isDirectConnectButton(connectButton)) {
-          console.log('[Connection Request Tracker] ⚡ Processing direct connection');
-          await this.handleDirectConnection(connectButton);
-        } else {
-          console.log('[Connection Request Tracker] 📱 Connect button will open modal, waiting...');
-          // Modal will be handled by modal observer
+        let connectionData: ConnectionRequestData | null = null;
+
+        if (isDropdownItem) {
+          console.log('[Connection Request Tracker] 📋 Processing dropdown connect item');
+          connectionData = extractDropdownConnectionRequestData(connectElement);
+        } else if (isModalButton) {
+          // Check if this will open a modal or is direct
+          if (this.willOpenModal(connectElement)) {
+            console.log(
+              '[Connection Request Tracker] 📱 Connect button will open modal, waiting...',
+            );
+            // Modal will be handled by modal observer
+            return;
+          } else {
+            console.log('[Connection Request Tracker] ⚡ Processing direct connection button');
+            connectionData = extractDirectConnectionRequestData(connectElement);
+          }
+        }
+
+        if (connectionData) {
+          console.log('[Connection Request Tracker] 📊 DETECTED CONNECTION REQUEST:');
+          console.log('  👤 Recipient:', connectionData.recipientName);
+          console.log('  🔗 Profile URL:', connectionData.recipientProfileUrl);
+          console.log('  💼 Title:', connectionData.recipientTitle);
+          console.log('  📏 Location:', connectionData.recipientLocation);
+          console.log('  🏢 Company:', connectionData.recipientCompany);
+          console.log('  🔗 Connection Type:', connectionData.connectionType);
+          console.log('  📍 Context:', connectionData.requestContext);
+
+          // Capture the data
+          await this.sendConnectionRequestToBackground(connectionData);
         }
       } catch (error) {
         console.error(
-          '[Connection Request Tracker] 💥 Error handling connect button click:',
+          '[Connection Request Tracker] 💥 Error handling connect element click:',
           error,
         );
       }
     };
 
-    // Add click event listener
-    connectButton.addEventListener('click', handleConnectClick, { capture: true });
+    // Add click event listener with high priority in capture phase
+    connectElement.addEventListener('click', handleConnectClick, { capture: true, passive: false });
   }
 
   /**
@@ -253,17 +288,26 @@ export class ConnectionRequestTracker {
       console.log('[Connection Request Tracker] 🚀 Modal send button clicked:', sendButton);
 
       try {
-        // Extract data before sending
-        const preSendData = extractPreSendConnectionRequestData();
-        if (!preSendData) {
-          console.warn('[Connection Request Tracker] ❌ No valid pre-send data extracted');
+        // Extract data from current page (simplified approach)
+        const connectionData = extractModalConnectionRequestData();
+        if (!connectionData) {
+          console.warn(
+            '[Connection Request Tracker] ❌ No valid connection data extracted from modal',
+          );
           return;
         }
 
-        console.log('[Connection Request Tracker] 📊 Pre-send data extracted:', preSendData);
+        console.log('[Connection Request Tracker] 📊 DETECTED MODAL CONNECTION REQUEST:');
+        console.log('  👤 Recipient:', connectionData.recipientName);
+        console.log('  🔗 Profile URL:', connectionData.recipientProfileUrl);
+        console.log('  💼 Title:', connectionData.recipientTitle);
+        console.log('  📏 Location:', connectionData.recipientLocation);
+        console.log('  🏢 Company:', connectionData.recipientCompany);
+        console.log('  🔗 Connection Type:', connectionData.connectionType);
+        console.log('  📍 Context:', connectionData.requestContext);
 
         // Check for duplicate capture prevention
-        const captureKey = `${preSendData.recipientProfileUrl}-${preSendData.customMessage?.substring(0, 50)}`;
+        const captureKey = `${connectionData.recipientProfileUrl}-${connectionData.timestamp}`;
         const lastCapture = this.lastRequestCapture.get(captureKey);
         const now = Date.now();
 
@@ -277,10 +321,8 @@ export class ConnectionRequestTracker {
 
         this.lastRequestCapture.set(captureKey, now);
 
-        // Wait for the request to be sent and process
-        setTimeout(async () => {
-          await this.captureConfirmedConnectionRequest(preSendData);
-        }, 1500);
+        // Capture immediately since we have all the data
+        await this.sendConnectionRequestToBackground(connectionData);
       } catch (error) {
         console.error(
           '[Connection Request Tracker] 💥 Error handling modal send button click:',
@@ -289,76 +331,34 @@ export class ConnectionRequestTracker {
       }
     };
 
-    // Add click event listener
-    sendButton.addEventListener('click', handleModalSendClick, { capture: true });
+    // Add click event listener with high priority in capture phase
+    sendButton.addEventListener('click', handleModalSendClick, { capture: true, passive: false });
 
     // Also listen for form submission
     const form = sendButton.closest('form');
     if (form) {
-      form.addEventListener('submit', handleModalSendClick, { capture: true });
+      form.addEventListener('submit', handleModalSendClick, { capture: true, passive: false });
     }
   }
 
   /**
-   * Check if a connect button is a direct connection (no modal)
+   * Check if a connect button will open a modal
    */
-  private isDirectConnectButton(button: Element): boolean {
-    // PYMK and suggestion cards typically use direct connect
-    const container = button.closest('.discover-cohort-card, .people-connect-card, .pymk-card');
-    return container !== null;
+  private willOpenModal(button: Element): boolean {
+    // Most connect buttons on profile pages open a modal
+    // Direct connects are typically on cards/search results
+    const isInProfileContext = window.location.href.includes('/in/');
+    const isInCard = button.closest(
+      '.discover-cohort-card, .people-connect-card, .pymk-card, .reusable-search__result-container',
+    );
+
+    // If we're on a profile page and not in a card, it likely opens a modal
+    return isInProfileContext && !isInCard;
   }
 
-  /**
-   * Handle direct connection request (no modal)
-   */
-  private async handleDirectConnection(connectButton: Element) {
-    try {
-      const connectionData = extractDirectConnectionRequestData(connectButton);
-      if (!validateConnectionRequestDataComplete(connectionData)) {
-        console.warn('[Connection Request Tracker] ❌ Invalid direct connection data');
-        return;
-      }
+  // Removed handleDirectConnection method as it's now handled in attachConnectElementListener
 
-      console.log(
-        '[Connection Request Tracker] ⚡ Direct connection data extracted:',
-        connectionData,
-      );
-      await this.sendConnectionRequestToBackground(connectionData);
-    } catch (error) {
-      console.error('[Connection Request Tracker] 💥 Error handling direct connection:', error);
-    }
-  }
-
-  /**
-   * Capture confirmed connection request after modal submission
-   */
-  private async captureConfirmedConnectionRequest(preSendData: Partial<ConnectionRequestData>) {
-    try {
-      console.log('[Connection Request Tracker] 📡 Capturing confirmed connection request...');
-
-      const confirmedData = extractConfirmedConnectionRequestData(preSendData);
-
-      if (!validateConnectionRequestDataComplete(confirmedData)) {
-        console.warn('[Connection Request Tracker] ❌ Invalid confirmed connection data');
-        // Fallback: use pre-send data
-        await this.sendConnectionRequestToBackground(preSendData);
-        return;
-      }
-
-      console.log(
-        '[Connection Request Tracker] ✅ Confirmed connection data extracted:',
-        confirmedData,
-      );
-      await this.sendConnectionRequestToBackground(confirmedData);
-    } catch (error) {
-      console.error(
-        '[Connection Request Tracker] 💥 Error capturing confirmed connection request:',
-        error,
-      );
-      // Fallback: use pre-send data
-      await this.sendConnectionRequestToBackground(preSendData);
-    }
-  }
+  // Removed captureConfirmedConnectionRequest method as we now capture immediately
 
   /**
    * Send connection request data to background script
@@ -439,6 +439,68 @@ export class ConnectionRequestTracker {
   }
 
   /**
+   * Show a visual notification for dry-run mode
+   */
+  private showDryRunNotification(connectionData: Partial<ConnectionRequestData>) {
+    // Create a temporary notification overlay
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ff6b35;
+      color: white;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 9999;
+      max-width: 400px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.4;
+    `;
+
+    notification.innerHTML = `
+      <div style="font-weight: bold; margin-bottom: 8px;">🛑 DRY-RUN MODE ACTIVE</div>
+      <div>Connection request to <strong>${connectionData.recipientName ?? ''}</strong> was intercepted and NOT sent.</div>
+      <div style="margin-top: 8px; font-size: 12px; opacity: 0.9;">Data captured for testing. Check console for details.</div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 5000);
+  }
+
+  /**
+   * Enable or disable dry-run mode
+   */
+  public setDryRunMode(enabled: boolean) {
+    this.isDryRunMode = enabled;
+    localStorage.setItem('linkedinAiAssistant:dryRunMode', enabled.toString());
+    console.log(`[Connection Request Tracker] 🧪 Dry-run mode ${enabled ? 'ENABLED' : 'DISABLED'}`);
+  }
+
+  /**
+   * Get detected connections for testing review
+   */
+  public getDetectedConnections() {
+    return Array.from(this.detectedConnections.values());
+  }
+
+  /**
+   * Clear detected connections
+   */
+  public clearDetectedConnections() {
+    this.detectedConnections.clear();
+    console.log('[Connection Request Tracker] 🧹 Cleared detected connections');
+  }
+
+  /**
    * Get current tracking stats for debugging
    */
   public getStats() {
@@ -448,6 +510,8 @@ export class ConnectionRequestTracker {
       trackedSendButtons: this.trackedSendButtons.size,
       recentCaptures: this.lastRequestCapture.size,
       isModalOpen: isConnectionRequestModalOpen(),
+      isDryRunMode: this.isDryRunMode,
+      detectedConnectionsCount: this.detectedConnections.size,
     };
   }
 }

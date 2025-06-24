@@ -4,40 +4,28 @@
  */
 
 export const CONNECTION_REQUEST_SELECTORS = {
-  // Connection request modal (from provided HTML)
-  connectionModal: '[data-test-modal][role="dialog"].send-invite',
-  modalHeader: '.artdeco-modal__header',
-  modalContent: '.artdeco-modal__content',
-  modalActionBar: '.artdeco-modal__actionbar',
-
-  // Modal title and content
-  modalTitle: '#send-invite-modal',
-  modalDismiss: '[data-test-modal-close-btn]',
-  premiumUpsellMessage: '.connect-button-send-invite__premium-upsell-message',
-
-  // Message composition in connection request
-  messageTextArea: '#custom-message, .connect-button-send-invite__custom-message',
-  messageLabel: 'label[for="custom-message"]',
-  characterCount: '.t-14.t-black--light.flex-1.text-align-right',
-  messageContainer: '.relative',
-
-  // Action buttons in modal
-  sendButton: 'button[aria-label="Send invitation"]',
-  cancelButton: 'button[aria-label="Cancel adding a note"]',
-  sendButtonEnabled: 'button[aria-label="Send invitation"]:not([disabled])',
-  sendButtonDisabled: 'button[aria-label="Send invitation"][disabled]',
-
-  // Connect buttons on profiles and search results
-  connectButton:
-    'button[aria-label*="Invite"][aria-label*="to connect"], .artdeco-button--2[aria-label*="Connect"]',
-  connectButtonPrimary: '.connect-button, button[data-control-name*="connect"]',
+  // Connection buttons on profiles - simplified approach
+  connectButton: 'button[aria-label*="Connect"], button[aria-label*="Invite"]',
+  connectDropdownItem:
+    'div[aria-label*="Invite"][aria-label*="to connect"], div[aria-label*="Connect"]',
   moreActionsButton: 'button[aria-label="More actions"]',
+  connectButtonPrimary: '.connect-button, button[data-control-name*="connect"]',
 
-  // Profile page elements for context
-  profileHeader: '.pv-top-card, .profile-top-card',
-  profileName: '.text-heading-xlarge, .pv-top-card--list-bullet h1',
-  profileTitle: '.text-body-medium, .pv-top-card--list-bullet .text-body-medium',
-  profileUrl: 'link[rel="canonical"], .pv-top-card--list-bullet a[href*="/in/"]',
+  // Connection request modal (if needed for send interception)
+  connectionModal: '[data-test-modal][role="dialog"].send-invite, .artdeco-modal[aria-labelledby]',
+  sendButton: 'button[aria-label="Send invitation"], button[aria-label*="Send"]',
+  cancelButton: 'button[aria-label="Cancel"], button[aria-label*="Cancel"]',
+
+  // Profile page elements for extracting person information
+  profileHeader: '.pv-top-card, .profile-top-card, .ph5.pb5, .pv-profile-section',
+  profileName:
+    '.text-heading-xlarge, .pv-top-card--list-bullet h1, h1.text-heading-xlarge, .pv-text-details__left-panel h1',
+  profileTitle:
+    '.text-body-medium.break-words, .pv-top-card--list-bullet .text-body-medium, .text-body-medium, .pv-text-details__left-panel .text-body-medium:first-of-type',
+  profileLocation:
+    '.text-body-small.inline.t-black--light, .pv-text-details__left-panel .text-body-small',
+  profileCompany:
+    '.pv-text-details__left-panel .text-body-medium:not(:first-of-type), .experience-section .pv-entity__company-summary-info h3',
 
   // Search results context
   searchResultCard: '.reusable-search__result-container, .search-result__wrapper',
@@ -76,12 +64,11 @@ export interface ConnectionRequestData {
   recipientName: string;
   recipientProfileUrl: string;
   recipientTitle?: string;
+  recipientLocation?: string;
   recipientCompany?: string;
-  customMessage: string;
   timestamp: string;
   requestContext: 'profile_page' | 'search_results' | 'people_suggestions' | 'pymk' | 'other';
-  hasCustomMessage: boolean;
-  invitationLimitRemaining?: string;
+  connectionType: 'direct' | 'with_note' | 'dropdown';
 }
 
 export interface RecipientInfo {
@@ -89,6 +76,7 @@ export interface RecipientInfo {
   profileUrl: string;
   title?: string;
   company?: string;
+  location?: string;
 }
 
 /**
@@ -130,105 +118,128 @@ export function isConnectionSendButtonEnabled(): boolean {
 }
 
 /**
- * Extract the custom message from the connection request modal
+ * Extract the person's name from aria-label or profile page
  */
-export function extractConnectionMessage(): string {
-  const textArea = findConnectionMessageTextArea();
-  return textArea?.value?.trim() || '';
+export function extractPersonNameFromContext(element?: Element): string {
+  // First try to extract from aria-label (like "Invite Navin Chaddha to connect")
+  if (element) {
+    const ariaLabel = element.getAttribute('aria-label') || '';
+    const inviteMatch = ariaLabel.match(/Invite ([^\s]+ [^\s]+) to connect/i);
+    if (inviteMatch) {
+      return inviteMatch[1];
+    }
+
+    const connectMatch = ariaLabel.match(/Connect with ([^\s]+ [^\s]+)/i);
+    if (connectMatch) {
+      return connectMatch[1];
+    }
+  }
+
+  // Fallback to profile page extraction
+  return extractRecipientFromProfile().name;
 }
 
 /**
- * Extract recipient information from current context
+ * Extract recipient information from current page (simplified approach)
  */
-export function extractRecipientInfo(): RecipientInfo {
-  // Try to get from profile page context
-  let recipientInfo = extractRecipientFromProfile();
+export function extractRecipientInfo(connectElement?: Element): RecipientInfo {
+  // Always try to get from current profile page first
+  const profileInfo = extractRecipientFromProfile();
 
-  // If not on profile, try to get from search results or other contexts
-  if (!recipientInfo.name) {
-    recipientInfo = extractRecipientFromContext();
+  // If we have a connect element, try to extract name from its aria-label
+  if (connectElement && !profileInfo.name) {
+    const nameFromElement = extractPersonNameFromContext(connectElement);
+    if (nameFromElement) {
+      return {
+        name: nameFromElement,
+        profileUrl: window.location.href,
+        title: profileInfo.title,
+        company: profileInfo.company,
+        location: profileInfo.location,
+      };
+    }
   }
 
-  return recipientInfo;
+  return profileInfo;
 }
 
 /**
  * Extract recipient information from profile page
  */
-function extractRecipientFromProfile(): RecipientInfo {
-  const profileHeader = document.querySelector(CONNECTION_REQUEST_SELECTORS.profileHeader);
+function extractRecipientFromProfile(): RecipientInfo & { location?: string } {
+  // Extract name - try multiple selectors
+  const nameSelectors = [
+    'h1.text-heading-xlarge',
+    '.pv-text-details__left-panel h1',
+    '.text-heading-xlarge',
+    '.pv-top-card--list-bullet h1',
+  ];
 
-  if (!profileHeader) {
-    return { name: '', profileUrl: '' };
+  let name = '';
+  for (const selector of nameSelectors) {
+    const element = document.querySelector(selector);
+    if (element?.textContent?.trim()) {
+      name = element.textContent.trim();
+      break;
+    }
   }
 
-  // Extract name
-  const nameElement = profileHeader.querySelector(CONNECTION_REQUEST_SELECTORS.profileName);
-  const name = nameElement?.textContent?.trim() || '';
+  // Extract title - try multiple selectors
+  const titleSelectors = [
+    '.pv-text-details__left-panel .text-body-medium:first-of-type',
+    '.text-body-medium.break-words',
+    '.pv-top-card--list-bullet .text-body-medium:first-of-type',
+  ];
 
-  // Extract title
-  const titleElement = profileHeader.querySelector(CONNECTION_REQUEST_SELECTORS.profileTitle);
-  const title = titleElement?.textContent?.trim() || '';
-
-  // Extract profile URL
-  let profileUrl = window.location.href;
-  const canonicalLink = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
-  if (canonicalLink) {
-    profileUrl = canonicalLink.href;
+  let title = '';
+  for (const selector of titleSelectors) {
+    const element = document.querySelector(selector);
+    if (element?.textContent?.trim()) {
+      title = element.textContent.trim();
+      break;
+    }
   }
+
+  // Extract location
+  const locationSelectors = [
+    '.pv-text-details__left-panel .text-body-small.inline.t-black--light',
+    '.text-body-small.inline.t-black--light',
+  ];
+
+  let location = '';
+  for (const selector of locationSelectors) {
+    const element = document.querySelector(selector);
+    if (element?.textContent?.trim()) {
+      location = element.textContent.trim();
+      break;
+    }
+  }
+
+  // Extract company from experience section or other areas
+  const companySelectors = [
+    '.pv-text-details__left-panel .text-body-medium:not(:first-of-type)',
+    '.experience-section .pv-entity__company-summary-info h3:first-child',
+  ];
+
+  let company = '';
+  for (const selector of companySelectors) {
+    const element = document.querySelector(selector);
+    if (element?.textContent?.trim()) {
+      company = element.textContent.trim();
+      break;
+    }
+  }
+
+  // Get current page URL (this is the profile URL)
+  const profileUrl = window.location.href;
 
   return {
     name,
     profileUrl,
     title,
+    company,
+    location,
   };
-}
-
-/**
- * Extract recipient information from search results or other contexts
- */
-function extractRecipientFromContext(): RecipientInfo {
-  // Try to find recently clicked connect button to get context
-
-  // Look for search result cards
-  const searchCards = document.querySelectorAll(CONNECTION_REQUEST_SELECTORS.searchResultCard);
-  for (const card of searchCards) {
-    const connectButton = card.querySelector(CONNECTION_REQUEST_SELECTORS.connectButton);
-    if (connectButton) {
-      const nameElement = card.querySelector(CONNECTION_REQUEST_SELECTORS.searchResultName);
-      const titleElement = card.querySelector(CONNECTION_REQUEST_SELECTORS.searchResultTitle);
-      const linkElement = card.querySelector('a[href*="/in/"]') as HTMLAnchorElement;
-
-      if (nameElement) {
-        return {
-          name: nameElement.textContent?.trim() || '',
-          profileUrl: linkElement?.href || '',
-          title: titleElement?.textContent?.trim() || '',
-        };
-      }
-    }
-  }
-
-  // Look for PYMK cards
-  const pymkCards = document.querySelectorAll(CONNECTION_REQUEST_SELECTORS.pymkCard);
-  for (const card of pymkCards) {
-    const connectButton = card.querySelector(CONNECTION_REQUEST_SELECTORS.pymkConnectButton);
-    if (connectButton) {
-      const nameElement = card.querySelector(CONNECTION_REQUEST_SELECTORS.pymkName);
-      const titleElement = card.querySelector(CONNECTION_REQUEST_SELECTORS.pymkTitle);
-      const linkElement = card.querySelector('a[href*="/in/"]') as HTMLAnchorElement;
-
-      if (nameElement) {
-        return {
-          name: nameElement.textContent?.trim() || '',
-          profileUrl: linkElement?.href || '',
-          title: titleElement?.textContent?.trim() || '',
-        };
-      }
-    }
-  }
-
-  return { name: '', profileUrl: '' };
 }
 
 /**

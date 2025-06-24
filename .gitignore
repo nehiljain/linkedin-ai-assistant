@@ -105,3 +105,7 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Scratch pad for development notes
+scratch_pad.txt
+html_dom.txt

@@ -1,4 +1,7 @@
 import { sendToBackground } from '@plasmohq/messaging';
+import type { PlasmoCSConfig } from 'plasmo';
+import { createRoot } from 'react-dom/client';
+
 import AiCaptureButton from '~components/ai-capture-button';
 import { createCommentSubmissionListener, type CommentData } from '~utils/comment-tracker';
 import { ConnectionRequestTracker } from '~utils/connection-request-tracker';
@@ -6,17 +9,24 @@ import { findActionBar, isLinkedInFeedPage } from '~utils/linkedin-dom';
 import { MessageTracker } from '~utils/message-tracker';
 import { PerformanceManager } from '~utils/performance-manager';
 import { extractPostData, validatePostData } from '~utils/post-extractor';
-import { createRoot } from 'react-dom/client';
-
 export const config: PlasmoCSConfig = {
   matches: ['https://www.linkedin.com/*'],
   all_frames: false,
 };
 
+interface LinkedinAiHelpers {
+  setDryRunMode: (enabled: boolean) => void;
+  getDetectedConnections: () => unknown[];
+  clearDetectedConnections: () => void;
+  getStats: () => unknown;
+  enableTestMode: () => void;
+  disableTestMode: () => void;
+}
+
 class LinkedInAiAssistant {
-  private performanceManager: PerformanceManager;
-  private messageTracker: MessageTracker;
-  private connectionRequestTracker: ConnectionRequestTracker;
+  public performanceManager: PerformanceManager;
+  public messageTracker: MessageTracker;
+  public connectionRequestTracker: ConnectionRequestTracker;
   private isInitialized = false;
   private commentListener: ((event: Event) => void) | null = null;
 
@@ -340,8 +350,77 @@ setInterval(checkForNavigation, 2000);
 // Initial initialization
 initializeExtension();
 
-// Export for debugging
+// Export for debugging and testing
 if (process.env.NODE_ENV === 'development') {
   (window as unknown as { linkedinAiAssistant: typeof aiAssistant }).linkedinAiAssistant =
     aiAssistant;
+
+  // Add global helper functions for testing
+  (window as unknown as { linkedinAiHelpers: LinkedinAiHelpers }).linkedinAiHelpers = {
+    setDryRunMode: (enabled: boolean) => {
+      if (aiAssistant) {
+        aiAssistant.connectionRequestTracker.setDryRunMode(enabled);
+        console.log(`🧪 Dry-run mode ${enabled ? 'ENABLED' : 'DISABLED'}`);
+      }
+    },
+    getDetectedConnections: () => {
+      if (aiAssistant) {
+        const connections = aiAssistant.connectionRequestTracker.getDetectedConnections();
+        console.log('📊 Detected connections:', connections);
+        return connections;
+      }
+      return [];
+    },
+    clearDetectedConnections: () => {
+      if (aiAssistant) {
+        aiAssistant.connectionRequestTracker.clearDetectedConnections();
+      }
+    },
+    getStats: () => {
+      if (aiAssistant) {
+        const stats = {
+          performance: aiAssistant.performanceManager.getStats(),
+          messaging: aiAssistant.messageTracker.getStats(),
+          connections: aiAssistant.connectionRequestTracker.getStats(),
+        };
+        console.log('📈 Current tracking stats:', stats);
+        return stats;
+      }
+      return null;
+    },
+    enableTestMode: () => {
+      console.log('🧪 ENABLING TEST MODE');
+      console.log('🛑 Connection requests will be intercepted and NOT sent');
+      console.log('📝 All data will be captured for review');
+      if (aiAssistant) {
+        aiAssistant.connectionRequestTracker.setDryRunMode(true);
+      }
+    },
+    disableTestMode: () => {
+      console.log('🚨 DISABLING TEST MODE');
+      console.log('⚠️ Connection requests will now be ACTUALLY SENT');
+      if (aiAssistant) {
+        aiAssistant.connectionRequestTracker.setDryRunMode(false);
+      }
+    },
+  };
+
+  console.log('[LinkedIn AI Assistant] [DEBUG] Exposed aiAssistant to window');
+  console.log(
+    '[LinkedIn AI Assistant] [DEBUG] Helper functions available at window.linkedinAiHelpers',
+  );
+  console.log('');
+  console.log('🧪 ===== TESTING MODE AVAILABLE =====');
+  console.log('🛑 Dry-run mode is ENABLED by default');
+  console.log('📝 Connection requests will be detected but NOT sent');
+  console.log('');
+  console.log('📋 Available commands:');
+  console.log('  linkedinAiHelpers.enableTestMode()    - Enable test mode (default)');
+  console.log('  linkedinAiHelpers.disableTestMode()   - ⚠️ DISABLE test mode (REAL sends!)');
+  console.log('  linkedinAiHelpers.getDetectedConnections() - See captured data');
+  console.log('  linkedinAiHelpers.getStats()          - View tracking statistics');
+  console.log('');
+  console.log('🧪 To test: Navigate to LinkedIn and try to send a connection request');
+  console.log('📊 Check console for detailed logging of what would be captured');
+  console.log('=====================================');
 }
