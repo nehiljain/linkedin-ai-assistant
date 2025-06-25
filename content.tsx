@@ -1,11 +1,10 @@
 import { sendToBackground } from '@plasmohq/messaging';
 import AiCaptureButton from '~components/ai-capture-button';
+import { createCommentSubmissionListener, type CommentData } from '~utils/comment-tracker';
 import { findActionBar, isLinkedInFeedPage } from '~utils/linkedin-dom';
 import { PerformanceManager } from '~utils/performance-manager';
 import { extractPostData, validatePostData } from '~utils/post-extractor';
 import { createRoot } from 'react-dom/client';
-
-console.log('[LinkedIn AI Assistant] [DEBUG] AiCaptureButton import:', AiCaptureButton);
 
 export const config: PlasmoCSConfig = {
   matches: ['https://www.linkedin.com/*'],
@@ -15,9 +14,9 @@ export const config: PlasmoCSConfig = {
 class LinkedInAiAssistant {
   private performanceManager: PerformanceManager;
   private isInitialized = false;
+  private commentListener: ((event: Event) => void) | null = null;
 
   constructor() {
-    console.log('[LinkedIn AI Assistant] [DEBUG] LinkedInAiAssistant constructor called');
     this.performanceManager = new PerformanceManager();
   }
 
@@ -25,16 +24,10 @@ class LinkedInAiAssistant {
    * Initialize the extension
    */
   public async initialize() {
-    console.log('[LinkedIn AI Assistant] [DEBUG] initialize() called');
     if (this.isInitialized) return;
-
-    console.log('[LinkedIn AI Assistant] Initializing...');
 
     // Only run on LinkedIn feed pages
     if (!isLinkedInFeedPage()) {
-      console.log(
-        '[LinkedIn AI Assistant] [DEBUG] Not a LinkedIn feed page, skipping initialization',
-      );
       return;
     }
 
@@ -50,12 +43,12 @@ class LinkedInAiAssistant {
    * Initialize after DOM is ready
    */
   private initializeAfterReady() {
-    console.log('[LinkedIn AI Assistant] [DEBUG] initializeAfterReady() called');
     // Wait a bit for LinkedIn to finish loading
     setTimeout(() => {
       this.setupPerformanceManager();
+      this.setupCommentTracking();
       this.isInitialized = true;
-      console.log('[LinkedIn AI Assistant] Initialized successfully');
+      console.log('[LinkedIn AI Assistant] Extension initialized');
     }, 2000);
   }
 
@@ -63,7 +56,6 @@ class LinkedInAiAssistant {
    * Setup the performance manager with callbacks
    */
   private setupPerformanceManager() {
-    console.log('[LinkedIn AI Assistant] [DEBUG] setupPerformanceManager() called');
     this.performanceManager.initialize(
       this.handlePostVisible.bind(this),
       this.handlePostHidden.bind(this),
@@ -71,7 +63,7 @@ class LinkedInAiAssistant {
 
     this.performanceManager.startObserving();
 
-    // Log stats periodically for debugging
+    // Log stats periodically in development
     if (process.env.NODE_ENV === 'development') {
       setInterval(() => {
         const stats = this.performanceManager.getStats();
@@ -81,12 +73,44 @@ class LinkedInAiAssistant {
   }
 
   /**
+   * Setup comment tracking to automatically capture comments
+   */
+  private setupCommentTracking() {
+    if (this.commentListener) {
+      document.removeEventListener('click', this.commentListener);
+    }
+
+    this.commentListener = createCommentSubmissionListener(this.handleCaptureComment.bind(this));
+    document.addEventListener('click', this.commentListener);
+    console.log('[LinkedIn AI Assistant] Comment tracking initialized');
+  }
+
+  /**
+   * Handle when a comment is captured
+   */
+  private async handleCaptureComment(commentData: CommentData): Promise<void> {
+    try {
+      // Send to background script for webhook call
+      const response = await sendToBackground({
+        name: 'captureComment',
+        body: commentData,
+      });
+
+      if (!response.success) {
+        console.error(`[LinkedIn AI Assistant] Comment capture failed:`, response.error);
+        throw new Error(response.error || 'Failed to capture comment');
+      }
+    } catch (error) {
+      console.error('[LinkedIn AI Assistant] Error capturing comment:', error);
+      // Don't re-throw to avoid disrupting the user's LinkedIn experience
+    }
+  }
+
+  /**
    * Handle when a post becomes hidden
    */
-  private handlePostHidden(postElement: Element) {
-    console.log('[LinkedIn AI Assistant] [DEBUG] handlePostHidden() called with:', postElement);
+  private handlePostHidden(_postElement: Element) {
     // Optional: Clean up any post-specific resources if needed
-    // For now, we'll just log it
   }
 
   /**
@@ -266,10 +290,15 @@ class LinkedInAiAssistant {
    * Cleanup when the extension is disabled or page is unloaded
    */
   public cleanup() {
-    console.log('[LinkedIn AI Assistant] [DEBUG] cleanup() called');
     this.performanceManager.stopObserving();
+
+    // Remove comment listener
+    if (this.commentListener) {
+      document.removeEventListener('click', this.commentListener);
+      this.commentListener = null;
+    }
+
     this.isInitialized = false;
-    console.log('[LinkedIn AI Assistant] Cleaned up');
   }
 }
 
@@ -278,7 +307,6 @@ let aiAssistant: LinkedInAiAssistant | null = null;
 
 // Initialize when script loads
 const initializeExtension = () => {
-  console.log('[LinkedIn AI Assistant] [DEBUG] initializeExtension() called');
   if (!aiAssistant) {
     aiAssistant = new LinkedInAiAssistant();
   }
@@ -287,7 +315,6 @@ const initializeExtension = () => {
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
-  console.log('[LinkedIn AI Assistant] [DEBUG] beforeunload event - cleanup');
   if (aiAssistant) {
     aiAssistant.cleanup();
   }
@@ -298,7 +325,6 @@ let currentUrl = window.location.href;
 const checkForNavigation = () => {
   if (window.location.href !== currentUrl) {
     currentUrl = window.location.href;
-    console.log('[LinkedIn AI Assistant] Navigation detected, reinitializing...');
 
     // Cleanup existing instance
     if (aiAssistant) {
@@ -320,5 +346,4 @@ initializeExtension();
 if (process.env.NODE_ENV === 'development') {
   (window as unknown as { linkedinAiAssistant: typeof aiAssistant }).linkedinAiAssistant =
     aiAssistant;
-  console.log('[LinkedIn AI Assistant] [DEBUG] Exposed aiAssistant to window');
 }
