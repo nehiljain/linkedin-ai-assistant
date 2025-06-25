@@ -1,3 +1,4 @@
+import { extractAuthorInfoUniversal } from './author-extraction';
 import { getPostId, type MediaItem, type PostData } from './linkedin-dom';
 
 /**
@@ -401,57 +402,11 @@ function extractPostAuthorInfoUniversal(container: Element): {
   post_author_name: string;
   post_author_profile: string;
 } {
-  // Option 1: Post page selectors
-  let authorLink = container?.querySelector('.update-components-actor__meta-link[href]');
-  let authorName = container?.querySelector('.update-components-actor__title span[dir="ltr"]');
-  if (authorLink && authorName) {
-    return {
-      post_author_name: authorName.textContent?.trim() || '',
-      post_author_profile: (authorLink as HTMLAnchorElement).href || '',
-    };
-  }
-
-  // Option 2: Feed selectors
-  authorLink = container?.querySelector(
-    'span.feed-shared-actor__name a, a.update-components-actor__meta-link, a.update-components-actor__image',
-  );
-  authorName = container?.querySelector(
-    'span.feed-shared-actor__name, .update-components-actor__title',
-  );
-  if (authorLink && authorName) {
-    return {
-      post_author_name: authorName.textContent?.trim() || '',
-      post_author_profile: (authorLink as HTMLAnchorElement).href || '',
-    };
-  }
-
-  // Option 3: Hidden <code> block with MiniProfile JSON
-  const codeBlocks = Array.from(document.querySelectorAll('code[id^="bpr-guid-"]'));
-  for (const code of codeBlocks) {
-    try {
-      const json = JSON.parse(code.textContent || '');
-      if (json.included && Array.isArray(json.included)) {
-        for (const obj of json.included) {
-          if (obj.$type && obj.$type.includes('MiniProfile')) {
-            const firstName = obj.firstName || '';
-            const lastName = obj.lastName || '';
-            const publicIdentifier = obj.publicIdentifier || '';
-            if (publicIdentifier) {
-              return {
-                post_author_name: `${firstName} ${lastName}`.trim(),
-                post_author_profile: `https://www.linkedin.com/in/${publicIdentifier}`,
-              };
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.log('Parse error in post author extraction:', e);
-    }
-  }
-
-  // Option 4: Empty fallback
-  return { post_author_name: '', post_author_profile: '' };
+  const authorInfo = extractAuthorInfoUniversal(container);
+  return {
+    post_author_name: authorInfo.name,
+    post_author_profile: authorInfo.profile,
+  };
 }
 
 /**

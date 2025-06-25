@@ -1,7 +1,7 @@
 import type { PlasmoMessaging } from '@plasmohq/messaging';
-import { Storage } from '@plasmohq/storage';
+import { WebhookClient } from '~utils/webhook-client';
 
-const storage = new Storage();
+const webhookClient = new WebhookClient();
 
 interface CaptureCommentRequest {
   text: string;
@@ -30,11 +30,7 @@ const handler: PlasmoMessaging.MessageHandler<
     }
 
     // Get the configured comment webhook from storage
-    const commentWebhook = await storage.get('commentWebhook');
-
-    if (!commentWebhook) {
-      throw new Error('Comment webhook not configured. Please set it in the extension options.');
-    }
+    const commentWebhook = await webhookClient.getWebhookEndpoint('commentWebhook');
 
     // Prepare the payload for the webhook (matching old code format exactly)
     const payload = {
@@ -49,39 +45,17 @@ const handler: PlasmoMessaging.MessageHandler<
       post_content: req.body.post_content,
     };
 
-    // Make the HTTP POST request to the configured webhook
-    const response = await fetch(commentWebhook, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'LinkedIn-AI-Assistant-Extension/1.0',
-      },
-      body: JSON.stringify(payload),
+    // Send to webhook using unified client
+    const webhookResponse = await webhookClient.sendToWebhook(payload, {
+      endpoint: commentWebhook,
     });
 
-    if (!response.ok) {
-      let errorDetails = `HTTP ${response.status}`;
-      try {
-        const errorBody = await response.text();
-        if (errorBody) {
-          errorDetails += `: ${errorBody}`;
-        }
-      } catch (e) {
-        console.log('Error reading response body:', e);
-      }
-      throw new Error(`Comment webhook request failed: ${errorDetails}`);
-    }
-
-    // Optional: Read response body for debugging
-    try {
-      await response.text();
-    } catch {
-      // Ignore response body parsing errors
+    if (!webhookResponse.success) {
+      throw new Error(webhookResponse.error || 'Comment webhook request failed');
     }
 
     // Increment comment counter for analytics
-    const currentCount = Number(await storage.get('commentCount')) || 0;
-    await storage.set('commentCount', currentCount + 1);
+    await webhookClient.incrementCounter('commentCount');
 
     res.send({
       success: true,
@@ -90,8 +64,7 @@ const handler: PlasmoMessaging.MessageHandler<
     console.error('[LinkedIn AI Assistant] Background: Error capturing comment:', error);
 
     // Increment error counter for analytics
-    const currentErrors = Number(await storage.get('errorCount')) || 0;
-    await storage.set('errorCount', currentErrors + 1);
+    await webhookClient.incrementCounter('errorCount');
 
     res.send({
       success: false,

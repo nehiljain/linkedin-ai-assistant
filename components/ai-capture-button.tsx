@@ -85,22 +85,14 @@ const AiCaptureButton: React.FC<AiCaptureButtonProps> = ({ postId, onCapture }) 
   const handleClick = async () => {
     if (state === 'loading' || state === 'captured') return;
 
-    console.log('[AI Capture Button] Click detected for post:', postId);
     setState('loading');
     try {
-      console.log('[AI Capture Button] Calling onCapture...');
       await onCapture(postId);
-      console.log('[AI Capture Button] onCapture completed successfully');
       setState('success');
       // After showing success for 1.5 seconds, permanently change to "captured"
       setTimeout(() => setState('captured'), 1500);
     } catch (error) {
       console.error('[AI Capture Button] Failed to capture post:', error);
-      console.error('[AI Capture Button] Error details:', {
-        message: error?.message,
-        stack: error?.stack,
-        postId,
-      });
       setState('error');
       // Reset to default after 3 seconds if there's an error
       setTimeout(() => setState('default'), 3000);

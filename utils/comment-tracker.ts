@@ -1,6 +1,8 @@
 // Comment tracking utilities for LinkedIn AI Assistant
 // Handles detection and extraction of LinkedIn comment data
 
+import { extractAuthorInfoUniversal } from './author-extraction';
+
 export interface CommentData {
   text: string;
   comment_author_name: string;
@@ -90,63 +92,11 @@ export function getPostContainerUniversal(commentElement: Element): Element | nu
  * Extracts post author information from a post container
  */
 export function extractPostAuthorInfoUniversal(container: Element | null): PostAuthorInfo {
-  if (!container) {
-    return { post_author_name: '', post_author_profile: '' };
-  }
-
-  // Option 1: Post page selectors
-  let authorLink = container.querySelector(
-    '.update-components-actor__meta-link[href]',
-  ) as HTMLAnchorElement;
-  let authorName = container.querySelector('.update-components-actor__title span[dir="ltr"]');
-  if (authorLink && authorName) {
-    return {
-      post_author_name: authorName.textContent?.trim() || '',
-      post_author_profile: authorLink.href || '',
-    };
-  }
-
-  // Option 2: Feed selectors
-  authorLink = container.querySelector(
-    'span.feed-shared-actor__name a, a.update-components-actor__meta-link, a.update-components-actor__image',
-  ) as HTMLAnchorElement;
-  authorName = container.querySelector(
-    'span.feed-shared-actor__name, .update-components-actor__title',
-  );
-  if (authorLink && authorName) {
-    return {
-      post_author_name: authorName.textContent?.trim() || '',
-      post_author_profile: authorLink.href || '',
-    };
-  }
-
-  // Option 3: Hidden <code> block with MiniProfile JSON
-  const codeBlocks = Array.from(document.querySelectorAll('code[id^="bpr-guid-"]'));
-  for (const code of codeBlocks) {
-    try {
-      const json = JSON.parse(code.textContent || '');
-      if (json.included && Array.isArray(json.included)) {
-        for (const obj of json.included) {
-          if (obj.$type && obj.$type.includes('MiniProfile')) {
-            const firstName = obj.firstName || '';
-            const lastName = obj.lastName || '';
-            const publicIdentifier = obj.publicIdentifier || '';
-            if (publicIdentifier) {
-              return {
-                post_author_name: `${firstName} ${lastName}`.trim(),
-                post_author_profile: `https://www.linkedin.com/in/${publicIdentifier}`,
-              };
-            }
-          }
-        }
-      }
-    } catch {
-      // Ignore parse errors
-    }
-  }
-
-  // Option 4: Empty fallback
-  return { post_author_name: '', post_author_profile: '' };
+  const authorInfo = extractAuthorInfoUniversal(container);
+  return {
+    post_author_name: authorInfo.name,
+    post_author_profile: authorInfo.profile,
+  };
 }
 
 /**
@@ -198,31 +148,10 @@ export function extractPostContentUniversal(
  * Extracts comment author information from a comment node
  */
 export function extractCommentAuthorInfoUniversal(commentNode: Element | null): CommentAuthorInfo {
-  if (!commentNode) {
-    return { comment_author_name: '', comment_author_profile: '' };
-  }
-
-  // Prefer the description container for name and profile
-  let authorLink = commentNode.querySelector(
-    '.comments-comment-meta__description-container[href]',
-  ) as HTMLAnchorElement;
-  let authorName = commentNode.querySelector('.comments-comment-meta__description-title');
-
-  // Fallback to image link
-  if (!authorLink) {
-    authorLink = commentNode.querySelector(
-      '.comments-comment-meta__image-link[href]',
-    ) as HTMLAnchorElement;
-  }
-
-  // Fallbacks for name
-  if (!authorName) {
-    authorName = commentNode.querySelector('h3, .comments-comment-meta__description-title');
-  }
-
+  const authorInfo = extractAuthorInfoUniversal(commentNode);
   return {
-    comment_author_name: authorName?.textContent?.trim() || '',
-    comment_author_profile: authorLink?.href || '',
+    comment_author_name: authorInfo.name,
+    comment_author_profile: authorInfo.profile,
   };
 }
 
@@ -230,79 +159,7 @@ export function extractCommentAuthorInfoUniversal(commentNode: Element | null): 
  * Robust logged-in user detection from DOM
  */
 export function detectUserFromDOM(): { name: string; profile: string } {
-  // Try navbar
-  const meNav = document.querySelector(
-    'a.global-nav__me-photo, a[data-control-name="nav_settings_profile"]',
-  ) as HTMLAnchorElement;
-  if (meNav) {
-    let name = meNav.getAttribute('aria-label') || meNav.getAttribute('alt') || '';
-    if (!name) {
-      const nameNode = meNav.closest('li')?.querySelector('.t-16.t-black.t-bold');
-      if (nameNode) name = nameNode.textContent?.trim() || '';
-    }
-    const profile = meNav.href || meNav.getAttribute('href') || '';
-    if (name || profile) return { name, profile };
-  }
-
-  // Try profile dropdown
-  const profileLink = document.querySelector('a[href^="/in/"]') as HTMLAnchorElement;
-  if (profileLink) {
-    const name = profileLink.textContent?.trim() || '';
-    const profile = profileLink.getAttribute('href') || '';
-    if (name || profile) return { name, profile };
-  }
-
-  // Try robust profile card extraction
-  const cardAuthor = extractAuthorFromProfileCard();
-  if (cardAuthor.name || cardAuthor.profile) return cardAuthor;
-
-  // Try hidden code block
-  const codeBlocks = Array.from(document.querySelectorAll('code[id^="bpr-guid-"]'));
-  for (const code of codeBlocks) {
-    try {
-      const json = JSON.parse(code.textContent || '');
-      if (json.included && Array.isArray(json.included)) {
-        for (const obj of json.included) {
-          if (obj.$type && obj.$type.includes('MiniProfile')) {
-            const firstName = obj.firstName || '';
-            const lastName = obj.lastName || '';
-            const publicIdentifier = obj.publicIdentifier || '';
-            const name = `${firstName} ${lastName}`.trim();
-            const profile = publicIdentifier
-              ? `https://www.linkedin.com/in/${publicIdentifier}`
-              : '';
-            if (name || profile) return { name, profile };
-          }
-        }
-      }
-    } catch {
-      // Ignore parse errors
-    }
-  }
-
-  return { name: '', profile: '' };
-}
-
-/**
- * Extract author info from profile card member details
- */
-function extractAuthorFromProfileCard(): { name: string; profile: string } {
-  const cards = Array.from(document.querySelectorAll('.profile-card-member-details'));
-  for (const card of cards) {
-    const links = Array.from(card.querySelectorAll('a[href^="/in/"]'));
-    for (const link of links) {
-      const nameNode = link.querySelector('h3.profile-card-name');
-      if (nameNode) {
-        const name = nameNode.textContent?.trim() || '';
-        const href = (link as HTMLAnchorElement).getAttribute('href');
-        const profile = href ? new URL(href, window.location.origin).href : '';
-        if (name || profile) {
-          return { name, profile };
-        }
-      }
-    }
-  }
-  return { name: '', profile: '' };
+  return extractAuthorInfoUniversal(document.body);
 }
 
 /**
