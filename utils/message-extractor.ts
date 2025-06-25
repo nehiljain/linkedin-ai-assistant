@@ -68,8 +68,10 @@ export function extractMessageData(
     }
 
     // Validate required fields
-    if (!messageText && attachments.length === 0) {
-      console.warn('[Message Extractor] ❌ No message content found');
+    if ((!messageText || messageText.trim() === '') && attachments.length === 0) {
+      console.warn(
+        '[Message Extractor] ❌ No message content found or text is empty after sanitization',
+      );
       return null;
     }
 
@@ -101,31 +103,105 @@ export function extractMessageData(
  * Extract message text from either sent message or composer
  */
 function extractMessageText(messageElement: Element, composerElement?: Element): string {
+  console.log('[Message Extractor] 📝 Extracting message text...', {
+    hasComposer: !!composerElement,
+    hasMessageElement: !!messageElement,
+  });
+
   // If we have a composer element, extract text from it (for outgoing messages)
   if (composerElement) {
-    const textArea = composerElement.querySelector(MESSAGING_SELECTORS.messageTextArea);
-    if (textArea) {
-      // For contenteditable divs, use textContent or innerText
-      const text = textArea.textContent || textArea.getAttribute('data-text') || '';
-      if (text.trim()) {
-        return sanitizeMessageText(text.trim());
+    console.log('[Message Extractor] 📝 Extracting from composer...');
+
+    const textAreaSelectors = [
+      // Specific selector based on the provided DOM structure
+      '.msg-form__contenteditable.t-14.t-black--light.t-normal.flex-grow-1.full-height.notranslate[contenteditable="true"]',
+      '.msg-form__contenteditable[contenteditable="true"]',
+      MESSAGING_SELECTORS.messageTextArea,
+      '.msg-form__contenteditable',
+      '[contenteditable="true"]',
+      '.msg-form__msg-content-container [contenteditable]',
+    ];
+
+    for (const selector of textAreaSelectors) {
+      const textArea = composerElement.querySelector(selector);
+      if (textArea) {
+        console.log(`[Message Extractor] 📝 Found text area with selector: ${selector}`);
+        console.log(`[Message Extractor] 📝 Text area HTML:`, textArea.outerHTML.substring(0, 200));
+
+        // For contenteditable divs, try multiple extraction methods
+        let text = '';
+
+        // Method 1: Get text from paragraph elements inside
+        const paragraphs = textArea.querySelectorAll('p');
+        if (paragraphs.length > 0) {
+          text = Array.from(paragraphs)
+            .map(p => p.textContent?.trim())
+            .filter(t => t && t !== '')
+            .join(' ');
+          console.log(`[Message Extractor] 📝 Extracted text from paragraphs: ${text}`);
+        }
+
+        // Method 2: Use textContent directly
+        if (!text) {
+          text = textArea.textContent || textArea.getAttribute('data-text') || '';
+          console.log(`[Message Extractor] 📝 Extracted text from textContent: ${text}`);
+        }
+
+        // Method 3: Use innerText
+        if (!text && 'innerText' in textArea) {
+          text = (textArea as HTMLElement).innerText || '';
+          console.log(`[Message Extractor] 📝 Extracted text from innerText: ${text}`);
+        }
+
+        // Clean up common placeholder text and UI elements
+        text = text
+          .replace(/Write a message…/g, '')
+          .replace(/Drag your file here\./g, '')
+          .replace(/Select your file/g, '')
+          .replace(/Or drag & drop next time/g, '')
+          .replace(/Open Emoji Keyboard/g, '')
+          .replace(/Send/g, '')
+          .replace(/Open send options/g, '')
+          .replace(/Maximize compose field/g, '')
+          .replace(/Attach an image to your conversation with/g, '')
+          .replace(/Attach a file to your conversation with/g, '')
+          .replace(/Add an emoji/g, '')
+          .replace(/Record a voice message/g, '')
+          .replace(/Send a video message/g, '')
+          .replace(/GIF/g, '')
+          .trim();
+
+        if (text) {
+          console.log(`[Message Extractor] 📝 Final extracted composer text: ${text}`);
+          return sanitizeMessageText(text);
+        }
       }
     }
+
+    console.log('[Message Extractor] 📝 No text found in composer');
   }
 
   // Extract from existing message element (for sent messages in thread)
+  // Updated selectors based on the actual DOM structure
   const messageTextSelectors = [
+    // Specific selector for message body based on DOM structure
+    '.msg-s-event-listitem__body.t-14.t-black--light.t-normal',
+    '.msg-s-event-listitem__body',
+    'p.msg-s-event-listitem__body',
     MESSAGING_SELECTORS.messageText,
     MESSAGING_SELECTORS.messageContent,
     '.msg-s-event-listitem__message-body',
     '.msg-s-message-bubble__content',
     '.artdeco-entity-lockup__caption',
+    '.msg-s-event__content p',
+    '.msg-s-event__content',
   ];
 
   for (const selector of messageTextSelectors) {
     const textElement = messageElement.querySelector(selector);
     if (textElement) {
       const text = textElement.textContent?.trim() || textElement.innerHTML?.trim() || '';
+      console.log(`[Message Extractor] 📝 Found text with selector '${selector}': ${text}`);
       if (text) {
         return sanitizeMessageText(text);
       }
@@ -134,6 +210,7 @@ function extractMessageText(messageElement: Element, composerElement?: Element):
 
   // Fallback: extract any text content from the message element
   const fallbackText = messageElement.textContent?.trim() || '';
+  console.log(`[Message Extractor] 📝 Fallback text: ${fallbackText}`);
   return sanitizeMessageText(fallbackText);
 }
 
@@ -151,21 +228,81 @@ function extractRecipientInfo(fromElement?: Element): {
     return { recipientName: '', recipientProfileUrl: '' };
   }
 
-  // Extract recipient name
+  console.log('[Message Extractor] 👤 Found conversation header:', conversationHeader);
+
+  // Extract recipient name - Updated based on actual DOM structure
   let recipientName = '';
   const nameSelectors = [
+    // Specific selectors based on the actual DOM structure
+    '.msg-overlay-bubble-header__title .t-14.t-bold.hoverable-link-text.t-black',
+    '.msg-overlay-bubble-header__title span.t-14.t-bold.hoverable-link-text',
+    '.msg-overlay-bubble-header__title a span',
+    '.msg-overlay-bubble-header__title .hoverable-link-text',
+    // Original selectors as fallbacks
     MESSAGING_SELECTORS.recipientName,
     MESSAGING_SELECTORS.conversationTitle,
     '.msg-entity-lockup__entity-title',
     '.msg-thread-header__title',
     '.msg-overlay-bubble-header__title',
+    '.msg-overlay-bubble-header__title span',
   ];
 
   for (const selector of nameSelectors) {
     const nameElement = conversationHeader.querySelector(selector);
     if (nameElement) {
       recipientName = nameElement.textContent?.trim() || '';
-      if (recipientName) break;
+      if (recipientName) {
+        console.log(
+          `[Message Extractor] 👤 Found recipient name with selector '${selector}': ${recipientName}`,
+        );
+        break;
+      }
+    }
+  }
+
+  // If still no name found, try alternative extraction methods
+  if (!recipientName) {
+    console.log('[Message Extractor] 👤 Trying alternative name extraction methods...');
+    console.log(
+      '[Message Extractor] 👤 Header HTML:',
+      conversationHeader.outerHTML.substring(0, 500),
+    );
+
+    // Try to extract from any link within the header
+    const linkElement = conversationHeader.querySelector('a[href*="/in/"] span');
+    if (linkElement) {
+      recipientName = linkElement.textContent?.trim() || '';
+      console.log(`[Message Extractor] 👤 Found recipient name from link: ${recipientName}`);
+    }
+
+    // Try to extract from h2 title element (based on DOM structure)
+    if (!recipientName) {
+      const h2Element = conversationHeader.querySelector('h2.msg-overlay-bubble-header__title');
+      if (h2Element) {
+        recipientName = h2Element.textContent?.trim() || '';
+        console.log(`[Message Extractor] 👤 Found recipient name from h2: ${recipientName}`);
+      }
+    }
+
+    // Try to extract from title attributes
+    if (!recipientName) {
+      const titleElement = conversationHeader.querySelector('[title*=","]');
+      if (titleElement) {
+        recipientName = titleElement.getAttribute('title')?.trim() || '';
+        console.log(`[Message Extractor] 👤 Found recipient name from title: ${recipientName}`);
+      }
+    }
+
+    // Last resort: extract from any text content that looks like a name
+    if (!recipientName) {
+      const allTextContent = conversationHeader.textContent || '';
+      const nameMatch = allTextContent.match(/([A-Z][a-z]+ [A-Z][a-z]+(?:, [A-Z-]+)*)/);
+      if (nameMatch) {
+        recipientName = nameMatch[1].trim();
+        console.log(
+          `[Message Extractor] 👤 Found recipient name from text content: ${recipientName}`,
+        );
+      }
     }
   }
 
@@ -176,12 +313,16 @@ function extractRecipientInfo(fromElement?: Element): {
     '.msg-entity-lockup__link',
     '.msg-thread-header__profile-link',
     'a[href*="/in/"]',
+    'a[href*="ACoA"]', // LinkedIn profile format
   ];
 
   for (const selector of profileSelectors) {
     const profileElement = conversationHeader.querySelector(selector) as HTMLAnchorElement;
     if (profileElement?.href) {
       recipientProfileUrl = profileElement.href;
+      console.log(
+        `[Message Extractor] 👤 Found profile URL with selector '${selector}': ${recipientProfileUrl}`,
+      );
       break;
     }
   }
@@ -195,6 +336,10 @@ function extractRecipientInfo(fromElement?: Element): {
     }
   }
 
+  console.log('[Message Extractor] 👤 Final extraction result:', {
+    recipientName,
+    recipientProfileUrl,
+  });
   return { recipientName, recipientProfileUrl };
 }
 
@@ -439,11 +584,45 @@ export function validateMessageData(data: MessageData | null): data is MessageDa
  * Sanitize extracted message text
  */
 function sanitizeMessageText(text: string): string {
-  return text
+  const cleaned = text
     .replace(/\s+/g, ' ') // Normalize whitespace
     .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove zero-width characters
     .replace(/<[^>]*>/g, '') // Remove HTML tags
     .trim();
+
+  // Filter out known UI placeholder text patterns
+  const uiPlaceholderPatterns = [
+    /^Drag your file here\.\s*Select your file/,
+    /Or drag & drop next time/,
+    /Maximize compose field/,
+    /Attach an image to your conversation with/,
+    /Attach a file to your conversation with/,
+    /Open Emoji Keyboard/,
+    /Send Open send options/,
+    /^Write a message…$/,
+    /^Send$/,
+    /^GIF$/,
+    /Add an emoji/,
+    /Record a voice message/,
+    /Send a video message/,
+  ];
+
+  // Check if the text matches any UI placeholder pattern
+  for (const pattern of uiPlaceholderPatterns) {
+    if (pattern.test(cleaned)) {
+      console.log(`[Message Extractor] 🚫 Filtered out UI placeholder text: "${cleaned}"`);
+      return ''; // Return empty string for UI placeholders
+    }
+  }
+
+  // Additional check for combined UI text that contains multiple placeholder elements
+  const combinedUIPattern = /Drag your file here.*Select your file.*Or drag.*drop.*time/;
+  if (combinedUIPattern.test(cleaned)) {
+    console.log(`[Message Extractor] 🚫 Filtered out combined UI placeholder text: "${cleaned}"`);
+    return '';
+  }
+
+  return cleaned;
 }
 
 /**
@@ -453,8 +632,55 @@ function sanitizeMessageText(text: string): string {
 export function extractPreSendMessageData(composerElement: Element): Partial<MessageData> | null {
   try {
     console.log('[Message Extractor] 🚀 Extracting pre-send message data');
+    console.log('[Message Extractor] 🚀 Composer element:', composerElement);
 
-    const messageText = extractMessageText(composerElement, composerElement);
+    // First, try to find the actual text input area within the composer
+    const textInputSelectors = [
+      '.msg-form__contenteditable[contenteditable="true"]',
+      '.msg-form__contenteditable',
+      '[contenteditable="true"]',
+      'div[role="textbox"]',
+    ];
+
+    let messageText = '';
+    for (const selector of textInputSelectors) {
+      const textInput = composerElement.querySelector(selector);
+      if (textInput) {
+        console.log(`[Message Extractor] 🚀 Found text input with selector: ${selector}`);
+        console.log(
+          `[Message Extractor] 🚀 Text input HTML:`,
+          textInput.outerHTML.substring(0, 300),
+        );
+
+        // Try multiple extraction methods
+        const paragraphs = textInput.querySelectorAll('p');
+        if (paragraphs.length > 0) {
+          messageText = Array.from(paragraphs)
+            .map(p => p.textContent?.trim())
+            .filter(t => t && t !== '')
+            .join(' ');
+          console.log(`[Message Extractor] 🚀 Extracted from paragraphs: "${messageText}"`);
+        }
+
+        if (!messageText) {
+          messageText = textInput.textContent?.trim() || '';
+          console.log(`[Message Extractor] 🚀 Extracted from textContent: "${messageText}"`);
+        }
+
+        if (!messageText && 'innerText' in textInput) {
+          messageText = (textInput as HTMLElement).innerText?.trim() || '';
+          console.log(`[Message Extractor] 🚀 Extracted from innerText: "${messageText}"`);
+        }
+
+        if (messageText) break;
+      }
+    }
+
+    // Fallback: try to extract from the full composer element
+    if (!messageText) {
+      messageText = extractMessageText(composerElement, composerElement);
+    }
+
     const recipientInfo = extractRecipientInfo(composerElement);
     const conversationContext = getConversationContext();
     const conversationId = getConversationId(composerElement);
@@ -468,7 +694,7 @@ export function extractPreSendMessageData(composerElement: Element): Partial<Mes
     });
 
     if (
-      !messageText.trim() &&
+      (!messageText || !messageText.trim()) &&
       !composerElement.querySelector(MESSAGING_SELECTORS.messageAttachment)
     ) {
       console.warn('[Message Extractor] ❌ No message content to extract pre-send');

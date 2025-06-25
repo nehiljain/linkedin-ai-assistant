@@ -170,6 +170,12 @@ export class MessageTracker {
           return;
         }
 
+        // Additional validation to prevent capturing UI placeholder text
+        if (!preSendData.messageText || preSendData.messageText.trim() === '') {
+          console.warn('[Message Tracker] ❌ Pre-send data has no valid message text');
+          return;
+        }
+
         console.log('[Message Tracker] 📊 Pre-send data extracted:', preSendData);
 
         // Check for duplicate capture prevention
@@ -242,6 +248,12 @@ export class MessageTracker {
         return;
       }
 
+      // Additional validation to prevent capturing UI placeholder text
+      if (!preSendData.messageText || preSendData.messageText.trim() === '') {
+        console.warn('[Message Tracker] ❌ Keyboard shortcut data has no valid message text');
+        return;
+      }
+
       // Check for duplicate prevention
       const captureKey = `${preSendData.conversationId}-${preSendData.messageText?.substring(0, 50)}`;
       const lastCapture = this.lastMessageCapture.get(captureKey);
@@ -283,8 +295,75 @@ export class MessageTracker {
       }
 
       // Find the most recent outgoing message
-      const sentMessages = threadContainer.querySelectorAll(MESSAGING_SELECTORS.sentMessage);
+      let sentMessages = threadContainer.querySelectorAll(MESSAGING_SELECTORS.sentMessage);
+
+      // If no messages found with explicit selectors, try alternative methods
+      if (sentMessages.length === 0) {
+        console.log(
+          '[Message Tracker] 🔍 No sent messages found with explicit selectors, trying alternatives...',
+        );
+
+        // Look for messages with sent indicators
+        const allMessages = threadContainer.querySelectorAll(
+          '.msg-s-event-listitem, .msg-s-message-list__event',
+        );
+        const sentMessagesList: Element[] = [];
+
+        allMessages.forEach(message => {
+          const sentIndicator = message.querySelector(
+            '.msg-s-event-with-indicator__sending-indicator--sent',
+          );
+          if (sentIndicator) {
+            sentMessagesList.push(message);
+            console.log('[Message Tracker] 🔍 Found sent message:', message);
+          }
+        });
+
+        console.log(
+          `[Message Tracker] 🔍 Found ${sentMessagesList.length} messages with sent indicators`,
+        );
+
+        if (sentMessagesList.length > 0) {
+          // Convert array to NodeList-like structure
+          sentMessages = sentMessagesList as unknown as NodeListOf<Element>;
+        }
+      }
+
+      // If we still have no sent messages, try to look for messages that match our pre-send data
+      if (sentMessages.length === 0 && preSendData.messageText) {
+        console.log('[Message Tracker] 🔍 Looking for messages that match pre-send text...');
+
+        const allMessages = threadContainer.querySelectorAll(
+          '.msg-s-event-listitem, .msg-s-message-list__event',
+        );
+        const matchingMessages: Element[] = [];
+
+        allMessages.forEach(message => {
+          const messageBody = message.querySelector(
+            '.msg-s-event-listitem__body, .msg-s-event__content',
+          );
+          if (messageBody) {
+            const messageText = messageBody.textContent?.trim() || '';
+            console.log(
+              `[Message Tracker] 🔍 Checking message text: "${messageText}" vs "${preSendData.messageText}"`,
+            );
+            if (messageText && messageText === preSendData.messageText.trim()) {
+              matchingMessages.push(message);
+              console.log('[Message Tracker] 🔍 Found matching message by text content');
+            }
+          }
+        });
+
+        if (matchingMessages.length > 0) {
+          sentMessages = matchingMessages as unknown as NodeListOf<Element>;
+        }
+      }
+
       const latestMessage = sentMessages[sentMessages.length - 1];
+      console.log(
+        `[Message Tracker] 🔍 Found ${sentMessages.length} sent messages, using latest:`,
+        latestMessage,
+      );
 
       if (!latestMessage) {
         console.warn('[Message Tracker] ❌ No sent message found in thread');

@@ -17,15 +17,18 @@ export const MESSAGING_SELECTORS = {
 
   // Message thread and history
   messageThread: '.msg-s-message-list, .msg-thread__messages',
-  messageItem: '.msg-s-message-list__event, .msg-s-event',
-  sentMessage: '.msg-s-message-list__event--outgoing, .msg-s-event--outgoing',
+  messageItem: '.msg-s-message-list__event, .msg-s-event, .msg-s-event-listitem',
+  sentMessage:
+    '.msg-s-message-list__event--outgoing, .msg-s-event--outgoing, .msg-s-event-listitem:has(.msg-s-event-with-indicator__sending-indicator--sent)',
   messageContent: '.msg-s-event-listitem__body, .msg-s-message-group__content',
   messageText: '.msg-s-event-listitem__message, .msg-s-message__body',
   messageTimestamp: '.msg-s-message-list__time-heading, .msg-s-event__timestamp',
 
   // Recipient information
-  conversationHeader: '.msg-thread-header, .msg-overlay-bubble-header',
-  recipientName: '.msg-entity-lockup__entity-title, .msg-thread-header__title',
+  conversationHeader:
+    '.msg-thread-header, .msg-overlay-bubble-header, .msg-overlay-conversation-bubble-header',
+  recipientName:
+    '.msg-entity-lockup__entity-title, .msg-thread-header__title, .msg-overlay-bubble-header__title',
   recipientProfile: '.msg-entity-lockup__link, .msg-thread-header__profile-link',
   recipientAvatar: '.msg-entity-lockup__entity-image, .msg-thread-header__image',
   conversationTitle: '.msg-thread-header__title, .msg-overlay-bubble-header__title',
@@ -173,16 +176,43 @@ export function getConversationContext(): MessageData['conversationContext'] {
  * Find the conversation header to extract recipient information
  */
 export function findConversationHeader(fromElement?: Element): Element | null {
+  console.log('[Messaging DOM] 🔍 Looking for conversation header...');
+
   if (fromElement) {
     // Find header within the same conversation container
     const container = fromElement.closest('.msg-thread, .msg-overlay-bubble, .msg-s-modal');
+    console.log('[Messaging DOM] 🔍 Container found:', !!container);
     if (container) {
-      return container.querySelector(MESSAGING_SELECTORS.conversationHeader);
+      const header = container.querySelector(MESSAGING_SELECTORS.conversationHeader);
+      console.log('[Messaging DOM] 🔍 Header in container:', !!header);
+      if (header) return header;
     }
   }
 
   // Fallback: find any active conversation header
-  return document.querySelector(MESSAGING_SELECTORS.conversationHeader);
+  const header = document.querySelector(MESSAGING_SELECTORS.conversationHeader);
+  console.log('[Messaging DOM] 🔍 Fallback header found:', !!header);
+
+  // If still not found, try more specific selectors
+  if (!header) {
+    console.log('[Messaging DOM] 🔍 Trying additional header selectors...');
+    const additionalSelectors = [
+      'header.msg-overlay-conversation-bubble-header',
+      '.msg-overlay-conversation-bubble-header',
+      'header[class*="msg-overlay"]',
+      'header[class*="bubble-header"]',
+    ];
+
+    for (const selector of additionalSelectors) {
+      const altHeader = document.querySelector(selector);
+      if (altHeader) {
+        console.log(`[Messaging DOM] ✅ Found header with selector: ${selector}`);
+        return altHeader;
+      }
+    }
+  }
+
+  return header;
 }
 
 /**
@@ -242,10 +272,70 @@ export function getConversationId(fromElement?: Element): string {
  * Check if a message element represents an outgoing (sent) message
  */
 export function isOutgoingMessage(messageElement: Element): boolean {
-  return (
+  console.log('[Messaging DOM] 🔍 Checking if message is outgoing:', messageElement);
+
+  // Check for explicit outgoing selectors first
+  if (
     messageElement.matches(MESSAGING_SELECTORS.sentMessage) ||
     messageElement.closest(MESSAGING_SELECTORS.sentMessage) !== null
+  ) {
+    console.log('[Messaging DOM] ✅ Found outgoing message via explicit selectors');
+    return true;
+  }
+
+  // Check for sent indicator (more reliable for newer LinkedIn DOM)
+  const sentIndicator = messageElement.querySelector(
+    '.msg-s-event-with-indicator__sending-indicator--sent',
   );
+  if (sentIndicator) {
+    console.log('[Messaging DOM] ✅ Found outgoing message via sent indicator');
+    return true;
+  }
+
+  // Check for sent indicator within the message content area
+  const contentArea = messageElement.querySelector('.msg-s-event-with-indicator');
+  if (contentArea) {
+    const indicator = contentArea.querySelector(
+      '.msg-s-event-with-indicator__sending-indicator--sent',
+    );
+    if (indicator) {
+      console.log('[Messaging DOM] ✅ Found outgoing message via content area sent indicator');
+      return true;
+    }
+  }
+
+  // Check if the message is from the current user by looking for profile links
+  // This is a fallback method for cases where explicit indicators aren't present
+  const profileLink = messageElement.querySelector('a[href*="/in/"]');
+  if (profileLink) {
+    const href = profileLink.getAttribute('href');
+    console.log('[Messaging DOM] 🔍 Found profile link:', href);
+
+    // If the profile link matches the current user's profile pattern, it's outgoing
+    // This is a heuristic based on LinkedIn's structure
+    const isCurrentUser = messageElement
+      .closest('.msg-s-event-listitem')
+      ?.querySelector('.msg-s-event-with-indicator__sending-indicator');
+    if (isCurrentUser) {
+      console.log('[Messaging DOM] ✅ Found outgoing message via current user check');
+      return true;
+    }
+  }
+
+  // Additional check: if message has profile picture and text content but no received indicators
+  // Look for messages that appear to be from current user (no other person's profile in message area)
+  const messageContainer = messageElement.closest('.msg-s-event-listitem');
+  if (messageContainer) {
+    // Check if this message has a sent status indicator anywhere in its structure
+    const anySentIndicator = messageContainer.querySelector('[title*="Sent at"]');
+    if (anySentIndicator) {
+      console.log('[Messaging DOM] ✅ Found outgoing message via sent status title');
+      return true;
+    }
+  }
+
+  console.log('[Messaging DOM] ❌ Message does not appear to be outgoing');
+  return false;
 }
 
 /**
